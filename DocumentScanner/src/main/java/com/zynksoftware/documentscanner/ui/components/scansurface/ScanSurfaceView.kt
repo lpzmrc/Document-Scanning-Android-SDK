@@ -27,21 +27,30 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.Surface
 import android.widget.FrameLayout
-import androidx.camera.core.*
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.zynksoftware.documentscanner.R
-import com.zynksoftware.documentscanner.common.extensions.yuvToRgba
+import com.zynksoftware.documentscanner.common.extensions.toMat
 import com.zynksoftware.documentscanner.common.utils.ImageDetectionProperties
 import com.zynksoftware.documentscanner.common.utils.OpenCvNativeBridge
+import com.zynksoftware.documentscanner.ktx.bitmap
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel.ErrorMessage
-import kotlinx.android.synthetic.main.scan_surface_view.view.*
+import java.io.File
+import kotlinx.android.synthetic.main.scan_surface_view.view.scanCanvasView
+import kotlinx.android.synthetic.main.scan_surface_view.view.viewFinder
 import org.opencv.core.MatOfPoint2f
 import org.opencv.core.Point
 import org.opencv.core.Size
-import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -100,7 +109,7 @@ internal class ScanSurfaceView : FrameLayout {
     private fun openCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
-        cameraProviderFuture.addListener(Runnable {
+        cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
 
             try {
@@ -120,13 +129,15 @@ internal class ScanSurfaceView : FrameLayout {
     }
 
     private fun setImageCapture() {
-        if(imageCapture != null && cameraProvider?.isBound(imageCapture!!) == true) {
+        if (imageCapture != null && cameraProvider?.isBound(imageCapture!!) == true) {
             cameraProvider?.unbind(imageCapture)
         }
 
         imageCapture = null
         imageCapture = ImageCapture.Builder()
             .setTargetRotation(Surface.ROTATION_0)
+            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+            .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY)
             .setFlashMode(flashMode)
             .build()
     }
@@ -156,11 +167,12 @@ internal class ScanSurfaceView : FrameLayout {
             .setTargetRotation(Surface.ROTATION_0)
             .build()
 
-        imageAnalysis?.setAnalyzer(ContextCompat.getMainExecutor(context), { image ->
+        imageAnalysis?.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
             if (isAutoCaptureOn) {
                 try {
-                    val mat = image.yuvToRgba()
-                    val originalPreviewSize = mat.size()
+                    val mat = imageProxy.bitmap!!.toMat()
+//                    val mat: Mat = imageProxy.yuvToRgba()
+                    val originalPreviewSize: Size = mat.size()
                     val largestQuad = nativeClass.detectLargestQuadrilateral(mat)
                     mat.release()
                     if (null != largestQuad) {
@@ -176,8 +188,8 @@ internal class ScanSurfaceView : FrameLayout {
             } else {
                 clearAndInvalidateCanvas()
             }
-            image.close()
-        })
+            imageProxy.close()
+        }
 
         camera = cameraProvider!!.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis, imageCapture)
     }

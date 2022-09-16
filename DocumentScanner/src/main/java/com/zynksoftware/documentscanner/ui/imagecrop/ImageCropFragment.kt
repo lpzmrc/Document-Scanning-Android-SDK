@@ -97,7 +97,7 @@ internal class ImageCropFragment : BaseFragment() {
         if(selectedImage != null && selectedImage!!.width > 0 && selectedImage!!.height > 0) {
             val scaledBitmap: Bitmap = selectedImage!!.scaledBitmap(holderImageCrop.width, holderImageCrop.height)
             imagePreview.setImageBitmap(scaledBitmap)
-            val tempBitmap = (imagePreview.drawable as BitmapDrawable).bitmap
+            val tempBitmap: Bitmap = (imagePreview.drawable as BitmapDrawable).bitmap
             val pointFs = getEdgePoints(tempBitmap)
             Log.d(TAG, "ZDCgetEdgePoints ends ${System.currentTimeMillis()}")
             polygonView.setPoints(pointFs)

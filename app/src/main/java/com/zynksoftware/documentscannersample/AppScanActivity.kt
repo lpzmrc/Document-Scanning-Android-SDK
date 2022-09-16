@@ -8,7 +8,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Environment.DIRECTORY_DCIM
 import android.provider.MediaStore
 import android.util.Log
@@ -19,16 +18,25 @@ import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.ScannerResults
 import com.zynksoftware.documentscannersample.adapters.ImageAdapter
 import com.zynksoftware.documentscannersample.adapters.ImageAdapterListener
-import kotlinx.android.synthetic.main.app_scan_activity_layout.*
-import java.io.*
+import com.zynksoftware.documentscannersample.ktx.sizeInMb
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import kotlinx.android.synthetic.main.app_scan_activity_layout.nextButton
+import kotlinx.android.synthetic.main.app_scan_activity_layout.previousButton
+import kotlinx.android.synthetic.main.app_scan_activity_layout.progressLayoutApp
+import kotlinx.android.synthetic.main.app_scan_activity_layout.viewPagerTwo
 
 
-class AppScanActivity: ScanActivity(), ImageAdapterListener {
+class AppScanActivity : ScanActivity(), ImageAdapterListener {
 
     companion object {
-        private val TAG = AppScanActivity::class.simpleName
+        private val TAG = ">>>>"
 
         fun start(context: Context) {
             val intent = Intent(context, AppScanActivity::class.java)
@@ -87,7 +95,7 @@ class AppScanActivity: ScanActivity(), ImageAdapterListener {
         val formatter = SimpleDateFormat("dd_MM_yyyy_HH_mm_ss:mm", Locale.getDefault())
         val dateFormatted = formatter.format(date)
 
-        val to = File(Environment.getExternalStorageDirectory().absolutePath + "/" + DIRECTORY_DCIM + "/zynkphoto${dateFormatted}.jpg")
+        val to = File(getExternalFilesDir(DIRECTORY_DCIM), "zynkphoto${dateFormatted}.jpg")
 
         val inputStream: InputStream = FileInputStream(image)
 
@@ -170,7 +178,7 @@ class AppScanActivity: ScanActivity(), ImageAdapterListener {
         alertDialogBuilder = android.app.AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton(buttonMessage) { dialog, which ->
+            .setPositiveButton(buttonMessage) { _, _ ->
 
             }
         alertDialog?.dismiss()
@@ -178,8 +186,4 @@ class AppScanActivity: ScanActivity(), ImageAdapterListener {
         alertDialog?.setCanceledOnTouchOutside(false)
         alertDialog?.show()
     }
-
-    val File.size get() = if (!exists()) 0.0 else length().toDouble()
-    val File.sizeInKb get() = size / 1024
-    val File.sizeInMb get() = sizeInKb / 1024
 }

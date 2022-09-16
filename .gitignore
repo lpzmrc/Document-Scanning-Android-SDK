@@ -1,0 +1,6 @@
+/build
+/openCVLibrary460/build/
+/DocumentScanner/build/
+/app/build/
+/openCVLibrary460/.cxx/
+/.gradle/

@@ -7,7 +7,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.zynksoftware.documentscannersample.R
 import java.io.File
 
-class ImageAdapter(val context: Context?, var imageList: ArrayList<File>, var listener: ImageAdapterListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ImageAdapter(
+    private val context: Context?,
+    private var imageList: ArrayList<File>,
+    private var listener: ImageAdapterListener,
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -22,10 +26,6 @@ class ImageAdapter(val context: Context?, var imageList: ArrayList<File>, var li
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         holder as ImageViewHolder
-        holder.bindData(context, imageList[position], listener, position, imageList.size)
-    }
-
-    fun updateList() {
-        notifyDataSetChanged()
+        holder.bindData(imageList[position], listener)
     }
 }
