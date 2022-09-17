@@ -23,16 +23,18 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.lifecycleScope
 import com.zynksoftware.documentscanner.R
 import com.zynksoftware.documentscanner.common.extensions.hide
 import com.zynksoftware.documentscanner.common.extensions.show
 import com.zynksoftware.documentscanner.manager.SessionManager
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.ScannerResults
+import com.zynksoftware.documentscanner.ui.DocumentScanner.Configuration.Companion.DEFAULT_IMAGE_QUALITY
 import com.zynksoftware.documentscanner.ui.camerascreen.CameraScreenFragment
 import com.zynksoftware.documentscanner.ui.components.ProgressView
 import com.zynksoftware.documentscanner.ui.imagecrop.ImageCropFragment
@@ -45,15 +47,15 @@ import id.zelory.compressor.extension
 import id.zelory.compressor.saveBitmap
 import java.io.File
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-abstract class InternalScanActivity : AppCompatActivity() {
+@Suppress("TooManyFunctions")
+abstract class InternalScanActivity : FragmentActivity() {
 
     internal lateinit var originalImageFile: File
     internal var croppedImage: Bitmap? = null
     internal var transformedImage: Bitmap? = null
-    private var imageQuality: Int = 100
+    private var imageQuality: Int = DEFAULT_IMAGE_QUALITY
     private var imageSize: Long = NOT_INITIALIZED
     private lateinit var imageType: Bitmap.CompressFormat
     internal var shouldCallOnClose = true
@@ -112,7 +114,7 @@ abstract class InternalScanActivity : AppCompatActivity() {
     private fun compressFiles() {
         Log.d(TAG, "ZDCcompress starts ${System.currentTimeMillis()}")
         findViewById<ProgressView>(R.id.zdcProgressView).show()
-        GlobalScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.IO) {
             var croppedImageFile: File? = null
             croppedImage?.let {
                 croppedImageFile = File(filesDir, "$CROPPED_IMAGE_NAME.${imageType.extension()}")

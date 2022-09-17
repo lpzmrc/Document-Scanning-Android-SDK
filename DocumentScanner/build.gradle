@@ -82,6 +82,8 @@ dependencies {
     // Use this dependency to bundle the model with your app
     implementation 'com.google.mlkit:image-labeling:17.0.7'
     implementation 'com.github.zynkware:Tiny-OpenCV:4.4.0-4'
+
+    api "androidx.lifecycle:lifecycle-runtime-ktx:2.5.1"
 }
 
 task sourceJar(type: Jar) {

@@ -22,13 +22,15 @@ package com.zynksoftware.documentscanner.ui
 import android.content.Context
 import android.graphics.Bitmap
 import com.zynksoftware.documentscanner.manager.SessionManager
+import com.zynksoftware.documentscanner.ui.DocumentScanner.Configuration.Companion.MAX_IMAGE_QUALITY
+import com.zynksoftware.documentscanner.ui.DocumentScanner.Configuration.Companion.MIN_IMAGE_QUALITY
 
 object DocumentScanner {
 
     fun init(context: Context, configuration: Configuration = Configuration()) {
         System.loadLibrary("opencv_java4")
         val sessionManager = SessionManager(context)
-        if (configuration.imageQuality in 1..100) {
+        if (configuration.imageQuality in MIN_IMAGE_QUALITY..MAX_IMAGE_QUALITY) {
             sessionManager.setImageQuality(configuration.imageQuality)
         }
         sessionManager.setImageSize(configuration.imageSize)
@@ -36,8 +38,15 @@ object DocumentScanner {
     }
 
     data class Configuration(
-        val imageQuality: Int = 100,
+        val imageQuality: Int = DEFAULT_IMAGE_QUALITY,
         val imageSize: Long = -1,
-        val imageType: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
-    )
+        val imageType: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+    ) {
+        companion object {
+            const val MIN_IMAGE_QUALITY = 1
+            const val MAX_IMAGE_QUALITY = 100
+            const val DEFAULT_IMAGE_QUALITY: Int = MAX_IMAGE_QUALITY
+        }
+
+    }
 }

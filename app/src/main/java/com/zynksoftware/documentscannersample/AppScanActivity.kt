@@ -1,6 +1,5 @@
 package com.zynksoftware.documentscannersample
 
-import android.Manifest
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
@@ -11,16 +10,16 @@ import android.os.Bundle
 import android.os.Environment.DIRECTORY_DCIM
 import android.provider.MediaStore
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
-import com.tbruyelle.rxpermissions3.RxPermissions
 import com.zynksoftware.documentscanner.ScanActivity
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
-import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel.ErrorMessage
 import com.zynksoftware.documentscanner.model.ScannerResults
 import com.zynksoftware.documentscannersample.adapters.ImageAdapter
 import com.zynksoftware.documentscannersample.adapters.ImageAdapterListener
 import com.zynksoftware.documentscannersample.databinding.AppScanActivityLayoutBinding
 import com.zynksoftware.documentscannersample.ktx.BYTE_SCALE
+import com.zynksoftware.documentscannersample.ktx.checkForStoragePermissions
 import com.zynksoftware.documentscannersample.ktx.sizeInMb
 import java.io.File
 import java.io.FileInputStream
@@ -31,14 +30,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@Suppress("TooManyFunctions")
 class AppScanActivity : ScanActivity(), ImageAdapterListener {
 
     private var _binding: AppScanActivityLayoutBinding? = null
     private val binding: AppScanActivityLayoutBinding
         get() = _binding!!
-    private var alertDialogBuilder: android.app.AlertDialog.Builder? = null
-    private var alertDialog: android.app.AlertDialog? = null
+    private var alertDialogBuilder: AlertDialog.Builder? = null
+    private var alertDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,27 +70,7 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
         checkForStoragePermissions(image)
     }
 
-    private fun checkForStoragePermissions(image: File) {
-        RxPermissions(this)
-            .requestEach(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
-            .subscribe { permission ->
-                when {
-                    permission.granted -> saveImage(image = image)
-                    permission.shouldShowRequestPermissionRationale -> onError(
-                        error = DocumentScannerErrorModel(
-                            errorMessage = ErrorMessage.STORAGE_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN
-                        )
-                    )
-                    else -> onError(
-                        error = DocumentScannerErrorModel(
-                            errorMessage = ErrorMessage.STORAGE_PERMISSION_REFUSED_GO_TO_SETTINGS
-                        )
-                    )
-                }
-            }
-    }
-
-    private fun saveImage(image: File) {
+    internal fun saveImage(image: File) {
         showProgressBar()
 
         val date = Date()
@@ -181,7 +159,7 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
     }
 
     private fun showAlertDialog(title: String?, message: String?, buttonMessage: String) {
-        alertDialogBuilder = android.app.AlertDialog.Builder(this)
+        alertDialogBuilder = AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(buttonMessage) { _, _ ->

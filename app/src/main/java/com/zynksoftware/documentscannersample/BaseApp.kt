@@ -10,7 +10,7 @@ class BaseApp : Application() {
 
         val configuration = DocumentScanner.Configuration(
             imageQuality = FILE_QUALITY,
-            imageType = FILE_TYPE
+            imageType = FILE_TYPE,
         )
         DocumentScanner.init(this, configuration)
     }
