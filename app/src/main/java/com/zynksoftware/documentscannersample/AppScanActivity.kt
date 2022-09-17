@@ -15,6 +15,7 @@ import androidx.core.view.isVisible
 import com.tbruyelle.rxpermissions3.RxPermissions
 import com.zynksoftware.documentscanner.ScanActivity
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
+import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel.ErrorMessage
 import com.zynksoftware.documentscanner.model.ScannerResults
 import com.zynksoftware.documentscannersample.adapters.ImageAdapter
 import com.zynksoftware.documentscannersample.adapters.ImageAdapterListener
@@ -30,6 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@Suppress("TooManyFunctions")
 class AppScanActivity : ScanActivity(), ImageAdapterListener {
 
     private var _binding: AppScanActivityLayoutBinding? = null
@@ -75,9 +77,17 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
             .requestEach(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
             .subscribe { permission ->
                 when {
-                    permission.granted -> saveImage(image)
-                    permission.shouldShowRequestPermissionRationale -> onError(DocumentScannerErrorModel(DocumentScannerErrorModel.ErrorMessage.STORAGE_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN))
-                    else -> onError(DocumentScannerErrorModel(DocumentScannerErrorModel.ErrorMessage.STORAGE_PERMISSION_REFUSED_GO_TO_SETTINGS))
+                    permission.granted -> saveImage(image = image)
+                    permission.shouldShowRequestPermissionRationale -> onError(
+                        error = DocumentScannerErrorModel(
+                            errorMessage = ErrorMessage.STORAGE_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN
+                        )
+                    )
+                    else -> onError(
+                        error = DocumentScannerErrorModel(
+                            errorMessage = ErrorMessage.STORAGE_PERMISSION_REFUSED_GO_TO_SETTINGS
+                        )
+                    )
                 }
             }
     }
