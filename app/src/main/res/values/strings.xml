@@ -3,4 +3,7 @@
     <string name="ok_label">OK</string>
     <string name="error_label">Error</string>
     <string name="photo_saved">Photo has been saved to Camera</string>
+    <string name="scan_lib_button">Scan Lib</string>
+    <string name="next">next</string>
+    <string name="previous">previous</string>
 </resources>

@@ -29,47 +29,49 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.zynksoftware.documentscanner.R
 import com.zynksoftware.documentscanner.common.extensions.rotateBitmap
+import com.zynksoftware.documentscanner.databinding.FragmentImageProcessingBinding
 import com.zynksoftware.documentscanner.ui.base.BaseFragment
 import com.zynksoftware.documentscanner.ui.scan.InternalScanActivity
-import kotlinx.android.synthetic.main.fragment_image_processing.closeButton
-import kotlinx.android.synthetic.main.fragment_image_processing.confirmButton
-import kotlinx.android.synthetic.main.fragment_image_processing.imagePreview
-import kotlinx.android.synthetic.main.fragment_image_processing.magicButton
-import kotlinx.android.synthetic.main.fragment_image_processing.rotateButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 internal class ImageProcessingFragment : BaseFragment() {
 
+    private var _binding: FragmentImageProcessingBinding? = null
+    private val binding
+        get() = _binding!!
     private var isInverted = false
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_image_processing, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return FragmentImageProcessingBinding.inflate(layoutInflater).apply {
+            _binding = this
+        }.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        imagePreview.setImageBitmap(getScanActivity().croppedImage)
+        binding.imagePreview.setImageBitmap(getScanActivity().croppedImage)
 
         initListeners()
     }
 
     private fun initListeners() {
-        closeButton.setOnClickListener {
-            closeFragment()
-        }
-        confirmButton.setOnClickListener {
-            selectFinalScannerResults()
-        }
-        magicButton.setOnClickListener {
-            applyGrayScaleFilter()
-        }
-        rotateButton.setOnClickListener {
-            rotateImage()
+        binding.run {
+            closeButton.setOnClickListener {
+                closeFragment()
+            }
+            confirmButton.setOnClickListener {
+                selectFinalScannerResults()
+            }
+            magicButton.setOnClickListener {
+                applyGrayScaleFilter()
+            }
+            rotateButton.setOnClickListener {
+                rotateImage()
+            }
         }
     }
 
@@ -88,9 +90,9 @@ internal class ImageProcessingFragment : BaseFragment() {
                 getScanActivity().runOnUiThread {
                     hideProgressBar()
                     if (isInverted) {
-                        imagePreview?.setImageBitmap(getScanActivity().transformedImage)
+                        binding.imagePreview.setImageBitmap(getScanActivity().transformedImage)
                     } else {
-                        imagePreview?.setImageBitmap(getScanActivity().croppedImage)
+                        binding.imagePreview.setImageBitmap(getScanActivity().croppedImage)
                     }
                 }
             }
@@ -118,12 +120,12 @@ internal class ImageProcessingFragment : BaseFragment() {
                     getScanActivity().transformedImage = bmpMonochrome.copy(bmpMonochrome.config, true)
                     getScanActivity().runOnUiThread {
                         hideProgressBar()
-                        imagePreview.setImageBitmap(getScanActivity().transformedImage)
+                        binding.imagePreview.setImageBitmap(getScanActivity().transformedImage)
                     }
                 } else {
                     getScanActivity().runOnUiThread {
                         hideProgressBar()
-                        imagePreview.setImageBitmap(getScanActivity().croppedImage)
+                        binding.imagePreview.setImageBitmap(getScanActivity().croppedImage)
                     }
                 }
                 isInverted = !isInverted

@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 29
@@ -17,10 +16,10 @@ android {
 
     buildTypes {
         debug {
-            manifestPlaceholders = [enableCrashReporting:"false"]
+            manifestPlaceholders = [enableCrashReporting: "false"]
         }
         release {
-            manifestPlaceholders = [enableCrashReporting:"true"]
+            manifestPlaceholders = [enableCrashReporting: "true"]
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -33,6 +32,10 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    buildFeatures {
+        viewBinding true
     }
 }
 

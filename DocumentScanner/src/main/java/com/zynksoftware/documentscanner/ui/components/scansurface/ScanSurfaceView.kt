@@ -37,16 +37,14 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.zynksoftware.documentscanner.R
 import com.zynksoftware.documentscanner.common.extensions.toMat
 import com.zynksoftware.documentscanner.common.utils.ImageDetectionProperties
 import com.zynksoftware.documentscanner.common.utils.OpenCvNativeBridge
+import com.zynksoftware.documentscanner.databinding.ScanSurfaceViewBinding
 import com.zynksoftware.documentscanner.ktx.bitmap
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel.ErrorMessage
 import java.io.File
-import kotlinx.android.synthetic.main.scan_surface_view.view.scanCanvasView
-import kotlinx.android.synthetic.main.scan_surface_view.view.viewFinder
 import org.opencv.core.MatOfPoint2f
 import org.opencv.core.Point
 import org.opencv.core.Size
@@ -56,6 +54,7 @@ import kotlin.math.roundToInt
 
 internal class ScanSurfaceView : FrameLayout {
 
+    private val binding: ScanSurfaceViewBinding = ScanSurfaceViewBinding.inflate(LayoutInflater.from(context), this, true)
     lateinit var lifecycleOwner: LifecycleOwner
     lateinit var listener: ScanSurfaceListener
     lateinit var originalImageFile: File
@@ -77,24 +76,22 @@ internal class ScanSurfaceView : FrameLayout {
     private var isFlashEnabled: Boolean = false
     private var flashMode: Int = ImageCapture.FLASH_MODE_OFF
 
-    init {
-        LayoutInflater.from(context).inflate(R.layout.scan_surface_view, this, true)
-    }
-
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
     fun start() {
-        viewFinder.post {
-            viewFinder.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-            previewSize = android.util.Size(viewFinder.width, viewFinder.height)
-            openCamera()
+        binding.run {
+            viewFinder.post {
+                viewFinder.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+                previewSize = android.util.Size(viewFinder.width, viewFinder.height)
+                openCamera()
+            }
         }
     }
 
     private fun clearAndInvalidateCanvas() {
-        scanCanvasView.clearShape()
+        binding.scanCanvasView.clearShape()
     }
 
     private fun openCamera() {
@@ -143,7 +140,7 @@ internal class ScanSurfaceView : FrameLayout {
             .setTargetRotation(Surface.ROTATION_0)
             .build()
             .also {
-                it.setSurfaceProvider(viewFinder.surfaceProvider)
+                it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
             }
 
         setImageCapture()
@@ -200,13 +197,13 @@ internal class ScanSurfaceView : FrameLayout {
             points[INDEX_POINT_0], points[INDEX_POINT_1], points[INDEX_POINT_2], points[INDEX_POINT_3], resultWidth.toInt(), resultHeight.toInt()
         )
         if (imgDetectionPropsObj.isNotValidImage(approx)) {
-            scanCanvasView.clearShape()
+            binding.scanCanvasView.clearShape()
             cancelAutoCapture()
         } else {
             if (!isAutoCaptureScheduled) {
                 scheduleAutoCapture()
             }
-            scanCanvasView.showShape(previewWidth, previewHeight, points)
+            binding.scanCanvasView.showShape(previewWidth, previewHeight, points)
         }
     }
 

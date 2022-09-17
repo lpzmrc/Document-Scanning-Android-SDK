@@ -18,6 +18,7 @@ import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.ScannerResults
 import com.zynksoftware.documentscannersample.adapters.ImageAdapter
 import com.zynksoftware.documentscannersample.adapters.ImageAdapterListener
+import com.zynksoftware.documentscannersample.databinding.AppScanActivityLayoutBinding
 import com.zynksoftware.documentscannersample.ktx.BYTE_SCALE
 import com.zynksoftware.documentscannersample.ktx.sizeInMb
 import java.io.File
@@ -28,20 +29,28 @@ import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.android.synthetic.main.app_scan_activity_layout.nextButton
-import kotlinx.android.synthetic.main.app_scan_activity_layout.previousButton
-import kotlinx.android.synthetic.main.app_scan_activity_layout.progressLayoutApp
-import kotlinx.android.synthetic.main.app_scan_activity_layout.viewPagerTwo
 
 class AppScanActivity : ScanActivity(), ImageAdapterListener {
 
+    private var _binding: AppScanActivityLayoutBinding? = null
+    private val binding: AppScanActivityLayoutBinding
+        get() = _binding!!
     private var alertDialogBuilder: android.app.AlertDialog.Builder? = null
     private var alertDialog: android.app.AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.app_scan_activity_layout)
+        setContentView(
+            AppScanActivityLayoutBinding.inflate(layoutInflater).apply {
+                _binding = this
+            }.root
+        )
         addFragmentContentLayout()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onError(error: DocumentScannerErrorModel) {
@@ -113,11 +122,11 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
     }
 
     private fun showProgressBar() {
-        progressLayoutApp.isVisible = true
+        binding.progressLayoutApp.isVisible = true
     }
 
     private fun hideProgessBar() {
-        progressLayoutApp.isVisible = false
+        binding.progressLayoutApp.isVisible = false
     }
 
     private fun initViewPager(scannerResults: ScannerResults) {
@@ -139,22 +148,24 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
         scannerResults.transformedImageFile?.let { fileList.add(it) }
         scannerResults.croppedImageFile?.let { fileList.add(it) }
         val targetAdapter = ImageAdapter(this, fileList, this)
-        viewPagerTwo.adapter = targetAdapter
-        viewPagerTwo.isUserInputEnabled = false
+        binding.run {
+            viewPagerTwo.adapter = targetAdapter
+            viewPagerTwo.isUserInputEnabled = false
 
-        previousButton.setOnClickListener {
-            viewPagerTwo.currentItem = viewPagerTwo.currentItem - 1
-            nextButton.isVisible = true
-            if (viewPagerTwo.currentItem == 0) {
-                previousButton.isVisible = false
+            previousButton.setOnClickListener {
+                viewPagerTwo.currentItem = viewPagerTwo.currentItem - 1
+                nextButton.isVisible = true
+                if (viewPagerTwo.currentItem == 0) {
+                    previousButton.isVisible = false
+                }
             }
-        }
 
-        nextButton.setOnClickListener {
-            viewPagerTwo.currentItem = viewPagerTwo.currentItem + 1
-            previousButton.isVisible = true
-            if (viewPagerTwo.currentItem == fileList.size - 1) {
-                nextButton.isVisible = false
+            nextButton.setOnClickListener {
+                viewPagerTwo.currentItem = viewPagerTwo.currentItem + 1
+                previousButton.isVisible = true
+                if (viewPagerTwo.currentItem == fileList.size - 1) {
+                    nextButton.isVisible = false
+                }
             }
         }
     }
