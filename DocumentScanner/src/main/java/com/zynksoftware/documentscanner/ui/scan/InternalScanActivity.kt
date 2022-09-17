@@ -17,7 +17,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package com.zynksoftware.documentscanner.ui.scan
 
 import android.graphics.Bitmap
@@ -44,27 +43,12 @@ import id.zelory.compressor.constraint.quality
 import id.zelory.compressor.constraint.size
 import id.zelory.compressor.extension
 import id.zelory.compressor.saveBitmap
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.File
 
 abstract class InternalScanActivity : AppCompatActivity() {
-
-    abstract fun onError(error: DocumentScannerErrorModel)
-    abstract fun onSuccess(scannerResults: ScannerResults)
-    abstract fun onClose()
-
-    companion object {
-        private val TAG = InternalScanActivity::class.simpleName
-        internal const val CAMERA_SCREEN_FRAGMENT_TAG =  "CameraScreenFragmentTag"
-        internal const val IMAGE_CROP_FRAGMENT_TAG = "ImageCropFragmentTag"
-        internal const val IMAGE_PROCESSING_FRAGMENT_TAG = "ImageProcessingFragmentTag"
-        internal const val ORIGINAL_IMAGE_NAME = "original"
-        internal const val CROPPED_IMAGE_NAME = "cropped"
-        internal const val TRANSFORMED_IMAGE_NAME = "transformed"
-        internal const val NOT_INITIALIZED = -1L
-    }
 
     internal lateinit var originalImageFile: File
     internal var croppedImage: Bitmap? = null
@@ -73,6 +57,10 @@ abstract class InternalScanActivity : AppCompatActivity() {
     private var imageSize: Long = NOT_INITIALIZED
     private lateinit var imageType: Bitmap.CompressFormat
     internal var shouldCallOnClose = true
+
+    abstract fun onError(error: DocumentScannerErrorModel)
+    abstract fun onSuccess(scannerResults: ScannerResults)
+    abstract fun onClose()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,7 +72,7 @@ abstract class InternalScanActivity : AppCompatActivity() {
     }
 
     internal fun reInitOriginalImageFile() {
-        originalImageFile = File(filesDir, "${ORIGINAL_IMAGE_NAME}.${imageType.extension()}")
+        originalImageFile = File(filesDir, "$ORIGINAL_IMAGE_NAME.${imageType.extension()}")
         originalImageFile.delete()
     }
 
@@ -127,13 +115,13 @@ abstract class InternalScanActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.IO) {
             var croppedImageFile: File? = null
             croppedImage?.let {
-                croppedImageFile = File(filesDir, "${CROPPED_IMAGE_NAME}.${imageType.extension()}")
+                croppedImageFile = File(filesDir, "$CROPPED_IMAGE_NAME.${imageType.extension()}")
                 saveBitmap(it, croppedImageFile!!, imageType, imageQuality)
             }
 
             var transformedImageFile: File? = null
             transformedImage?.let {
-                transformedImageFile = File(filesDir, "${TRANSFORMED_IMAGE_NAME}.${imageType.extension()}")
+                transformedImageFile = File(filesDir, "$TRANSFORMED_IMAGE_NAME.${imageType.extension()}")
                 saveBitmap(it, transformedImageFile!!, imageType, imageQuality)
             }
 
@@ -175,7 +163,8 @@ abstract class InternalScanActivity : AppCompatActivity() {
         val frameLayout = FrameLayout(this)
         frameLayout.id = R.id.zdcContent
         addContentView(
-            frameLayout, FrameLayout.LayoutParams(
+            frameLayout,
+            FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
@@ -184,7 +173,8 @@ abstract class InternalScanActivity : AppCompatActivity() {
         val progressView = ProgressView(this)
         progressView.id = R.id.zdcProgressView
         addContentView(
-            progressView, FrameLayout.LayoutParams(
+            progressView,
+            FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
@@ -193,5 +183,16 @@ abstract class InternalScanActivity : AppCompatActivity() {
         progressView.hide()
 
         showCameraScreen()
+    }
+
+    companion object {
+        private val TAG = InternalScanActivity::class.simpleName
+        internal const val CAMERA_SCREEN_FRAGMENT_TAG = "CameraScreenFragmentTag"
+        internal const val IMAGE_CROP_FRAGMENT_TAG = "ImageCropFragmentTag"
+        internal const val IMAGE_PROCESSING_FRAGMENT_TAG = "ImageProcessingFragmentTag"
+        internal const val ORIGINAL_IMAGE_NAME = "original"
+        internal const val CROPPED_IMAGE_NAME = "cropped"
+        internal const val TRANSFORMED_IMAGE_NAME = "transformed"
+        internal const val NOT_INITIALIZED = -1L
     }
 }

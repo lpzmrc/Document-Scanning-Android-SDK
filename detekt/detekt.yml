@@ -1,0 +1,791 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+  weights:
+  # complexity: 2
+  # LongParameterList: 1
+  # style: 1
+  # comments: 1
+
+config:
+  validation: true
+  # when writing own rules with new properties, exclude the property path e.g.: 'my_rule_set,.*>.*>[my_property]'
+  excludes: ''
+
+processors:
+  active: true
+  exclude:
+    - 'DetektProgressListener'
+  # - 'FunctionCountProcessor'
+  # - 'PropertyCountProcessor'
+  # - 'ClassCountProcessor'
+  # - 'PackageCountProcessor'
+  # - 'KtFileCountProcessor'
+
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+    - 'ComplexityReport'
+    - 'NotificationReport'
+    #  - 'FindingsReport'
+    - 'FileBasedFindingsReport'
+
+comments:
+  active: true
+  excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+  AbsentOrWrongFileLicense:
+    active: false
+    licenseTemplateFile: 'license.template'
+  CommentOverPrivateFunction:
+    active: false
+  CommentOverPrivateProperty:
+    active: false
+  # This rule reports use of the @deprecated block tag in KDoc comments. Deprecation must be specified using a @Deprecated annotation.
+  DeprecatedBlockTag:
+    active: true
+  EndOfSentenceFormat:
+    active: false
+    endOfSentenceFormat: '([.?!][ \t\n\r\f<])|([.?!:]$)'
+  # This rule reports public classes, objects and interfaces which do not have the required documentation.
+  UndocumentedPublicClass:
+    active: false
+    searchInNestedClass: true
+    searchInInnerClass: true
+    searchInInnerObject: true
+    searchInInnerInterface: true
+  # This rule will report any public function which does not have the required documentation.
+  UndocumentedPublicFunction:
+    active: false
+  # This rule will report any public property which does not have the required documentation.
+  UndocumentedPublicProperty:
+    active: false
+
+complexity:
+  active: true
+  # Complex conditions make it hard to understand which cases lead to the condition being true or false.
+  # To improve readability and understanding of complex conditions consider extracting them into well-named functions or variables and call those instead.
+  ComplexCondition:
+    active: true
+    threshold: 4
+  ComplexInterface:
+    active: false
+    threshold: 10
+    includeStaticDeclarations: false
+    includePrivateDeclarations: false
+  # Complex methods use too many of the following statements. Each one of them adds one to the complexity count.
+  #
+  # Conditional statements - if, else if, when
+  # Jump statements - continue, break
+  # Loops - for, while, do-while, forEach
+  # Operators &&, ||, ?:
+  # Exceptions - catch, use
+  # Scope Functions - let, run, with, apply, and also
+  ComplexMethod:
+    active: true
+    threshold: 15
+    ignoreSingleWhenExpression: false
+    ignoreSimpleWhenEntries: false
+    ignoreNestingFunctions: false
+    nestingFunctions: [run, let, apply, with, also, use, forEach, isNotNull, ifNull]
+  LabeledExpression:
+    active: false
+    ignoredLabels: []
+  # This rule reports large classes. Classes should generally have one responsibility.
+  # Large classes can indicate that the class does instead handle multiple responsibilities. Instead of doing many things at once prefer to split up large classes into smaller classes.
+  # These smaller classes are then easier to understand and handle less things.
+  LargeClass:
+    active: true
+    threshold: 600
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt' ]
+  # Methods should have one responsibility. Long methods can indicate that a method handles too many cases at once.
+  # Prefer smaller methods with clear names that describe their functionality clearly.
+  LongMethod:
+    active: true
+    threshold: 60
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt' ]
+  # Reports functions and constructors which have more parameters than a certain threshold.
+  LongParameterList:
+    active: true
+    functionThreshold: 6
+    constructorThreshold: 7
+    ignoreDefaultParameters: false
+    ignoreDataClasses: true
+    ignoreAnnotated: ['Inject']
+  MethodOverloading:
+    active: false
+    threshold: 6
+  # This rule reports excessive nesting depth in functions. Excessively nested code becomes harder to read and increases its hidden complexity.
+  # It might become harder to understand edge-cases of the function.
+  NestedBlockDepth:
+    active: true
+    threshold: 4
+  StringLiteralDuplication:
+    active: false
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    threshold: 3
+    ignoreAnnotation: true
+    excludeStringsWithLessThan5Characters: true
+    ignoreStringsRegex: '$^'
+  TooManyFunctions:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+    thresholdInInterfaces: 20
+    thresholdInObjects: 20
+    thresholdInEnums: 20
+    ignoreDeprecated: false
+    ignorePrivate: false
+    ignoreOverridden: false
+
+coroutines:
+  active: true
+  GlobalCoroutineUsage:
+    active: false
+  RedundantSuspendModifier:
+    active: false
+
+empty-blocks:
+  active: true
+  # Empty catch blocks indicate that an exception is ignored and not handled.
+  # In case exceptions are ignored intentionally, this should be made explicit by using the specified names in the allowedExceptionNameRegex
+  EmptyCatchBlock:
+    active: true
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyClassBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyDefaultConstructor:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyDoWhileBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyElseBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyFinallyBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyForBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed. This rule will not report functions with the override modifier that have a comment as their only body contents
+  EmptyFunctionBlock:
+    active: true
+    ignoreOverridden: false
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyIfBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyInitBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyKtFile:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptySecondaryConstructor:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyTryBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyWhenBlock:
+    active: true
+  # Empty blocks of code serve no purpose and should be removed.
+  EmptyWhileBlock:
+    active: true
+
+exceptions:
+  active: true
+  ExceptionRaisedInUnexpectedLocation:
+    active: false
+    methodNames: [toString, hashCode, equals, finalize]
+  InstanceOfCheckForException:
+    active: false
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+  NotImplementedDeclaration:
+    active: false
+  # Instead of simply printing a stacktrace a better logging solution should be used.
+  PrintStackTrace:
+    active: true
+  RethrowCaughtException:
+    active: false
+  ReturnFromFinally:
+    active: false
+    ignoreLabeled: false
+  SwallowedException:
+    active: false
+    ignoredExceptionTypes:
+      - InterruptedException
+      - NumberFormatException
+      - ParseException
+      - MalformedURLException
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  ThrowingExceptionFromFinally:
+    active: false
+  ThrowingExceptionInMain:
+    active: false
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: false
+    exceptions:
+      - IllegalArgumentException
+      - IllegalStateException
+      - IOException
+  ThrowingNewInstanceOfSameException:
+    active: false
+  # It should be preferred to catch specific exceptions to the case that is currently handled.
+  # If the scope of the caught exception is too broad it can lead to unintended exceptions being caught.
+  TooGenericExceptionCaught:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    exceptionNames:
+      - ArrayIndexOutOfBoundsException
+      - Error
+      - Exception
+      - IllegalMonitorStateException
+      - IndexOutOfBoundsException
+      - RuntimeException
+      - Throwable
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  #  It should be preferred to throw specific exceptions to the case that has currently occurred.
+  TooGenericExceptionThrown:
+    active: true
+    exceptionNames:
+      - Error
+      - Exception
+      - Throwable
+      - RuntimeException
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: true
+  AnnotationOnSeparateLine:
+    active: false
+    autoCorrect: true
+  ChainWrapping:
+    active: true
+    autoCorrect: true
+  CommentSpacing:
+    active: true
+    autoCorrect: true
+  EnumEntryNameCase:
+    active: false
+    autoCorrect: true
+  Filename:
+    active: true
+  FinalNewline:
+    active: true
+    autoCorrect: true
+    insertFinalNewLine: true
+  ImportOrdering:
+    active: false
+    autoCorrect: true
+  Indentation:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+    continuationIndentSize: 8
+  MaximumLineLength:
+    active: true
+    maxLineLength: 200
+  # This rule reports cases in the code where modifiers are not in the correct order. The default modifier order is
+  # taken from: http://kotlinlang.org/docs/reference/coding-conventions.html#modifiers
+  ModifierOrdering:
+    active: true
+    autoCorrect: true
+  MultiLineIfElse:
+    active: true
+    autoCorrect: true
+  NoBlankLineBeforeRbrace:
+    active: true
+    autoCorrect: true
+  NoConsecutiveBlankLines:
+    active: true
+    autoCorrect: true
+  NoEmptyClassBody:
+    active: true
+    autoCorrect: true
+  NoEmptyFirstLineInMethodBlock:
+    active: true
+    autoCorrect: true
+  NoLineBreakAfterElse:
+    active: true
+    autoCorrect: true
+  NoLineBreakBeforeAssignment:
+    active: true
+    autoCorrect: true
+  NoMultipleSpaces:
+    active: true
+    autoCorrect: true
+  NoSemicolons:
+    active: true
+    autoCorrect: true
+  NoTrailingSpaces:
+    active: true
+    autoCorrect: true
+  NoUnitReturn:
+    active: true
+    autoCorrect: true
+  NoUnusedImports:
+    active: true
+    autoCorrect: true
+  NoWildcardImports:
+    active: true
+  PackageName:
+    active: true
+    autoCorrect: true
+  ParameterListWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  SpacingAroundColon:
+    active: true
+    autoCorrect: true
+  SpacingAroundComma:
+    active: true
+    autoCorrect: true
+  SpacingAroundCurly:
+    active: true
+    autoCorrect: true
+  SpacingAroundDot:
+    active: true
+    autoCorrect: true
+  SpacingAroundKeyword:
+    active: true
+    autoCorrect: true
+  SpacingAroundOperators:
+    active: true
+    autoCorrect: true
+  SpacingAroundParens:
+    active: true
+    autoCorrect: true
+  SpacingAroundRangeOperator:
+    active: true
+    autoCorrect: true
+  StringTemplate:
+    active: true
+    autoCorrect: true
+
+naming:
+  active: true
+  # Reports when class or object names which do not follow the specified naming convention are used.
+  ClassNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    classPattern: '[A-Z][a-zA-Z0-9]+'
+  # Reports constructor parameter names which do not follow the specified naming convention are used.
+  ConstructorParameterNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    parameterPattern: '[a-z][A-Za-z0-9]+'
+    privateParameterPattern: '[a-z][A-Za-z0-9]+'
+    excludeClassPattern: '$^'
+    ignoreOverridden: true
+  # Reports when enum names which do not follow the specified naming convention are used.
+  EnumNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    enumEntryPattern: '[A-Z][_a-zA-Z0-9]+'
+  ForbiddenClassName:
+    active: false
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    forbiddenName: []
+  # Reports when very long function names are used.
+  FunctionMaxLength:
+    active: false
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    maximumFunctionNameLength: 30
+  # Reports when very short function names are used.
+  FunctionMinLength:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    minimumFunctionNameLength: 3
+  # Reports when function names which do not follow the specified naming convention are used.
+  # One exception are factory functions used to create instances of classes. These factory functions can have the same name as the class being created.
+  FunctionNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    functionPattern: '([a-z][a-zA-Z0-9]+)|(`.*`)'
+    excludeClassPattern: '$^'
+    ignoreOverridden: true
+  # Reports function parameter names which do not follow the specified naming convention are used.
+  FunctionParameterNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    parameterPattern: '[a-z][A-Za-z0-9]+'
+    excludeClassPattern: '$^'
+    ignoreOverridden: true
+  InvalidPackageDeclaration:
+    active: false
+    rootPackage: ''
+  # If a Kotlin file contains a single non-private class (potentially with related top-level declarations),
+  # its name should be the same as the name of the class, with the .kt extension appended.
+  # If a file contains multiple classes, or only top-level declarations, choose a name describing what the file contains, and name the file accordingly.
+  MatchingDeclarationName:
+    active: true
+    mustBeFirst: true
+  # This rule reports a member that has the same as the containing class or object. This might result in confusion.
+  MemberNameEqualsClassName:
+    active: true
+    ignoreOverridden: true
+  # Reports when property with ‘is’ prefix doesn’t have a boolean type.
+  NonBooleanPropertyPrefixedWithIs:
+    active: true
+  # Reports when property names inside objects which do not follow the specified naming convention are used.
+  ObjectPropertyNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    constantPattern: '[A-Za-z][_A-Za-z0-9]*'
+    propertyPattern: '[A-Za-z][_A-Za-z0-9]*'
+    privatePropertyPattern: '(_)?[A-Za-z][_A-Za-z0-9]*'
+  # Reports when package names which do not follow the specified naming convention are used.
+  PackageNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    packagePattern: '[a-z]+(\.[a-z][A-Za-z0-9]*)*'
+  # Reports when top level constant names which do not follow the specified naming convention are used.
+  TopLevelPropertyNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    constantPattern: '[A-Z][_A-Z0-9]*'
+    propertyPattern: '[A-Za-z][_A-Za-z0-9]*'
+    privatePropertyPattern: '_?[A-Za-z][_A-Za-z0-9]*'
+  VariableMaxLength:
+    active: false
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    maximumVariableNameLength: 64
+  # Reports when very short variable names are used.
+  VariableMinLength:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    minimumVariableNameLength: 2
+  # Reports when variable names which do not follow the specified naming convention are used.
+  VariableNaming:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    variablePattern: '[a-z][A-Za-z0-9]+'
+    privateVariablePattern: '(_)?[a-z][A-Za-z0-9]+'
+    excludeClassPattern: '$^'
+    ignoreOverridden: true
+
+performance:
+  active: true
+  # Using Array leads to implicit boxing and performance hit. Prefer using Kotlin specialized Array Instances.
+  ArrayPrimitive:
+    active: true
+  # Using the forEach method on ranges has a heavy performance cost. Prefer using simple for loops.
+  ForEachOnRange:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+  # In most cases using a spread operator causes a full copy of the array to be created before calling a method. This has a very high performance penalty.
+  SpreadOperator:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+  # Avoid temporary objects when converting primitive types to String. This has a performance penalty when compared to using primitive types directly.
+  UnnecessaryTemporaryInstantiation:
+    active: true
+
+potential-bugs:
+  active: true
+  # Kotlin supports two types of equality: structural equality and referential equality. While there are use cases for both, checking for
+  # referential equality for some types (such as String or List) is likely not intentional and may case unexpected results.
+  AvoidReferentialEquality:
+    active: true
+  Deprecation:
+    active: false
+  # Flags duplicate case statements in when expressions.
+  DuplicateCaseInWhenExpression:
+    active: true
+  # Reports equals() methods which will always return true or false.
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+  # When a class overrides the equals() method it should also override the hashCode() method.
+  EqualsWithHashCodeExist:
+    active: true
+  # Reports all calls to explicitly trigger the Garbage Collector.
+  # Code should work independently of the garbage collector and should not require the GC to be triggered in certain points in time.
+  ExplicitGarbageCollectionCall:
+    active: true
+  HasPlatformType:
+    active: false
+  IgnoredReturnValue:
+    active: false
+  ImplicitDefaultLocale:
+    active: false
+  # Reports ranges which are empty. This might be a bug if it is used for instance as a loop condition. This loop will never be triggered then.
+  InvalidRange:
+    active: true
+  # The hasNext() method of an Iterator implementation should not have any side effects.
+  # This rule reports implementations that call the next() method of the Iterator inside the hasNext() method.
+  IteratorHasNextCallsNextMethod:
+    active: true
+  # When there are no more elements to return an Iterator should throw a NoSuchElementException.
+  IteratorNotThrowingNoSuchElementException:
+    active: true
+  LateinitUsage:
+    active: false
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    excludeAnnotatedProperties: []
+    ignoreOnClassesPattern: ''
+  MapGetWithNotNullAssertionOperator:
+    active: false
+  # It is better to be explicit and either handle all cases or use a default else statement to cover the unhandled cases.
+  MissingWhenCase:
+    active: true
+  # Turn on this rule to flag when expressions that contain a redundant else case.
+  # This occurs when it can be verified that all cases are already covered when checking cases on an enum or sealed class.
+  RedundantElseInWhen:
+    active: true
+  # Reports loops which contain jump statements that jump regardless of any conditions.
+  # This implies that the loop is only executed once and thus could be rewritten without a loop altogether.
+  UnconditionalJumpStatementInLoop:
+    active: true
+  # Reports unnecessary not-null operator usage (!!) that can be removed by the user.
+  UnnecessaryNotNullOperator:
+    active: true
+  # Reports unnecessary safe call operators (.?) that can be removed by the user.
+  UnnecessarySafeCall:
+    active: true
+  # This unreachable code should be removed as it serves no purpose.
+  UnreachableCode:
+    active: true
+  # Reports unsafe calls on nullable types.
+  UnsafeCallOnNullableType:
+    active: true
+  # Reports casts that will never succeed.
+  UnsafeCast:
+    active: true
+  # This rule reports postfix expressions (++, –) which are unused and thus unnecessary.
+  UselessPostfixExpression:
+    active: true
+  # Reports equals() methods which take in a wrongly typed parameter. Correct implementations of the equals() method should only take in a parameter of type Any?
+  WrongEqualsTypeParameter:
+    active: true
+
+style:
+  active: true
+  # This rule ensures class contents are ordered as follows as recommended by the Kotlin Coding Conventions:
+  # - Property declarations and initializer blocks
+  # - Secondary constructors
+  # - Method declarations
+  # - Companion object
+  ClassOrdering:
+    active: true
+  CollapsibleIfStatements:
+    active: false
+  # Data classes should mainly be used to store data.
+  # This rule assumes that they should not contain any extra functions aside functions that help with converting objects from/to one another.
+  DataClassContainsFunctions:
+    active: true
+    conversionFunctionPrefix: 'to'
+  # Data classes should mainly be used to store immutable data. This rule assumes that they should not contain any mutable properties.
+  DataClassShouldBeImmutable:
+    active: true
+  # This rule detects and reports instances in the code where the equals() method is used to compare a value with null.
+  EqualsNullCall:
+    active: true
+  # Requires that the equals sign, when used for an expression style function, is on the same line as the rest of the function signature.
+  EqualsOnSignatureLine:
+    active: true
+  # In Kotlin functions get or set can be replaced with the shorter operator — []
+  ExplicitCollectionElementAccessMethod:
+    active: true
+  # Naming lambda parameter just 'it' is meaningless and only makes your code misleading, especially when dealing with nested functions.
+  ExplicitItLambdaParameter:
+    active: true
+  ExpressionBodySyntax:
+    active: false
+    includeLineWrapping: false
+  # This rule allows to set a list of comments which are forbidden in the codebase and should only be used during development.
+  ForbiddenComment:
+    active: true
+    values: ['TODO:', 'FIXME:', 'STOPSHIP:']
+    allowedPatterns: ''
+  ForbiddenImport:
+    active: false
+    imports: []
+    forbiddenPatterns: ''
+  ForbiddenMethodCall:
+    active: false
+    methods: []
+  ForbiddenPublicDataClass:
+    active: false
+    ignorePackages: ['*.internal', '*.internal.*']
+  # This rule detects usages of Void and reports them as forbidden. The Kotlin type Unit should be used instead.
+  ForbiddenVoid:
+    active: true
+    ignoreOverridden: false
+    ignoreUsageInGenerics: false
+  # A function that only returns a single constant can be misleading. Instead prefer to define the constant directly as a const val.
+  FunctionOnlyReturningConstant:
+    active: true
+    ignoreOverridableFunction: true
+    excludedFunctions: 'describeContents'
+    excludeAnnotatedFunction: ['dagger.Provides']
+  # Library functions/properties should have an explicit return type.
+  # Inferred return type can easily be changed by mistake which may lead to breaking changes.
+  LibraryCodeMustSpecifyReturnType:
+    active: true
+  # Loops which contain multiple break or continue statements are hard to read and understand. To increase readability they should be refactored into simpler loops.
+  LoopWithTooManyJumpStatements:
+    active: true
+    maxJumpCount: 1
+  # This rule detects and reports usages of magic numbers in the code. Prefer defining constants with clear names describing what the magic number means.
+  MagicNumber:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Test.kt', '**/*.Spec.kt', '**/*.Spek.kt']
+    ignoreNumbers: ['-1', '0', '1', '2', '100']
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: false
+    ignoreLocalVariableDeclaration: false
+    ignoreConstantDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: false
+    ignoreNamedArgument: true
+    ignoreEnums: false
+    ignoreRanges: false
+  # This rule detects multi-line if statements which do not have braces. Adding braces would improve readability and avoid possible errors.
+  MandatoryBracesIfStatements:
+    active: true
+  # This rule detects multi-line for and while loops which do not have braces. Adding braces would improve readability and avoid possible errors.
+  MandatoryBracesLoops:
+    active: true
+  # This rule reports lines of code which exceed a defined maximum line length.
+  MaxLineLength:
+    active: true
+    maxLineLength: 200
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: false
+  # This rule identifies and reports properties (val) that may be const val instead.
+  # Using const val can lead to better performance of the resulting bytecode as well as better interoperability with Java.
+  MayBeConst:
+    active: true
+  # This rule reports cases in the code where modifiers are not in the correct order.
+  # The default modifier order is taken from: http://kotlinlang.org/docs/reference/coding-conventions.html#modifiers
+  ModifierOrder:
+    active: true
+  NestedClassesVisibility:
+    active: false
+  # This rule reports files which do not end with a line separator.
+  NewLineAtEndOfFile:
+    active: true
+  # This rule reports if tabs are used in Kotlin files.
+  # According to Google’s Kotlin style guide the only whitespace chars that are allowed in a source file are the line terminator sequence and
+  # the ASCII horizontal space character (0x20). Strings containing tabs are allowed.
+  NoTabs:
+    active: true
+  # This rule reports abstract modifiers which are unnecessary and can be removed.
+  OptionalAbstractKeyword:
+    active: true
+  # It is not necessary to define a return type of Unit on functions or to specify a lone Unit statement.
+  OptionalUnit:
+    active: true
+  # This rule reports unnecessary braces in when expressions. These optional braces should be removed.
+  OptionalWhenBraces:
+    active: true
+  # This rule detects the usage of the Pair constructor to create pairs of values.
+  # Using to is preferred.
+  PreferToOverPairSyntax:
+    active: true
+  # Kotlin classes are final by default. Thus classes which are not marked as open should not contain any protected members.
+  # Consider using private or internal modifiers instead.
+  ProtectedMemberInFinalClass:
+    active: true
+  RedundantExplicitType:
+    active: false
+  # This rule checks for redundant visibility modifiers.
+  RedundantVisibilityModifierRule:
+    active: true
+  # Restrict the number of return methods allowed in methods.
+  # Having many exit points in a function can be confusing and impacts readability of the code.
+  ReturnCount:
+    active: true
+    max: 2
+    excludedFunctions: 'equals'
+    excludeLabeled: false
+    excludeReturnFromLambda: true
+    excludeGuardClauses: false
+  # This rule inspects casts and reports casts which could be replaced with safe casts instead.
+  SafeCast:
+    active: true
+  # Classes which implement the Serializable interface should also correctly declare a serialVersionUID.
+  # This rule verifies that a serialVersionUID was correctly defined.
+  SerialVersionUIDInSerializableClass:
+    active: true
+  # This rule verifies spacing between package and import statements as well as between import statements and class declarations.
+  SpacingBetweenPackageAndImports:
+    active: true
+  # Functions should have clear throw statements. Functions with many throw statements can be harder to read and lead to confusion.
+  ThrowsCount:
+    active: true
+    max: 2
+  # This rule reports lines that end with a whitespace.
+  TrailingWhitespace:
+    active: true
+  # This rule detects and reports decimal base 10 numeric literals above a certain length that should be underscore separated for readability.
+  # Underscores that do not make groups of 3 digits are also reported even if their length is under the acceptableDecimalLength.
+  UnderscoresInNumericLiterals:
+    active: true
+    acceptableDecimalLength: 5
+  # This rule inspects abstract classes. In case an abstract class does not have any concrete members it should be refactored into an interface.
+  UnnecessaryAbstractClass:
+    active: true
+    excludeAnnotatedClasses: ['dagger.Module']
+  UnnecessaryAnnotationUseSiteTarget:
+    active: false
+  # apply expressions are used frequently, but sometimes their usage should be replaced with an ordinary method/extension function call to reduce visual complexity
+  UnnecessaryApply:
+    active: true
+  UnnecessaryInheritance:
+    active: false
+  # let expressions are used extensively in our code for null-checking and chaining functions,
+  # but sometimes their usage should be replaced with a ordinary method/extension function call to reduce visual complexity
+  UnnecessaryLet:
+    active: true
+  # This rule reports unnecessary parentheses around expressions. These unnecessary parentheses can safely be removed.
+  UnnecessaryParentheses:
+    active: true
+  UntilInsteadOfRangeTo:
+    active: false
+  # This rule reports unused imports.
+  UnusedImports:
+    active: true
+  # Reports unused private classes.
+  UnusedPrivateClass:
+    active: true
+  # Reports unused private properties, function parameters and functions.
+  UnusedPrivateMember:
+    active: true
+    allowedNames: '(_|ignored|expected|serialVersionUID)'
+  # This rule detects annotations which use the arrayOf(…) syntax instead of the array literal […] syntax. The latter should be preferred as it is more readable.
+  UseArrayLiteralsInAnnotations:
+    active: true
+  UseCheckOrError:
+    active: false
+  UseDataClass:
+    active: false
+    excludeAnnotatedClasses: []
+    allowVars: false
+  UseIfInsteadOfWhen:
+    active: false
+  UseRequire:
+    active: false
+  # The Kotlin stdlib provides some functions that are designed to operate on references that may be null.
+  UselessCallOnNotNull:
+    active: true
+  # A class which only contains utility variables and functions with no concrete implementation can be refactored into an object or an class with a non-public constructor.
+  UtilityClassWithPublicConstructor:
+    active: true
+  # Reports var declarations (locally-scoped variables) that could be val, as they are not re-assigned. Val declarations are assign-once (read-only),
+  # which makes understanding the current state easier.
+  VarCouldBeVal:
+    active: true
+  # Wildcard imports should be replaced with imports using fully qualified class names.
+  WildcardImport:
+    active: true
+    excludes: ['**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.Spec.kt', '**/*.Spek.kt']
+    excludeImports: ['kotlinx.android.synthetic.*']

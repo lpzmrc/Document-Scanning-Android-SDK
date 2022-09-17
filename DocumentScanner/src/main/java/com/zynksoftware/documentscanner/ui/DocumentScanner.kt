@@ -17,7 +17,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package com.zynksoftware.documentscanner.ui
 
 import android.content.Context
@@ -29,18 +28,16 @@ object DocumentScanner {
     fun init(context: Context, configuration: Configuration = Configuration()) {
         System.loadLibrary("opencv_java4")
         val sessionManager = SessionManager(context)
-        if(configuration.imageQuality in 1..100) {
+        if (configuration.imageQuality in 1..100) {
             sessionManager.setImageQuality(configuration.imageQuality)
         }
         sessionManager.setImageSize(configuration.imageSize)
         sessionManager.setImageType(configuration.imageType)
     }
 
-
     data class Configuration(
-        var imageQuality: Int = 100,
-        var imageSize: Long = -1,
-        var imageType: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
-    ){
-    }
+        val imageQuality: Int = 100,
+        val imageSize: Long = -1,
+        val imageType: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
+    )
 }

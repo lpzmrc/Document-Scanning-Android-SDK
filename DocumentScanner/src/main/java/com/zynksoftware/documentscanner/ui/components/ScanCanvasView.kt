@@ -17,7 +17,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package com.zynksoftware.documentscanner.ui.components
 
 import android.content.Context
@@ -32,18 +31,13 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import com.zynksoftware.documentscanner.R
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_0
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_1
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_2
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_3
 import org.opencv.core.Point
 
 internal class ScanCanvasView : FrameLayout {
-
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
-
-    companion object {
-        private const val CLEAR_SHAPE_DELAY_IN_MILLIS = 600L
-        private const val POINTER_ANIMATION_DURATION = 300L
-    }
 
     private var paint = Paint()
     private var border = Paint()
@@ -51,10 +45,21 @@ internal class ScanCanvasView : FrameLayout {
 
     private var shouldAnimate = true
 
-    var pointer1: View = View(context)
-    var pointer2: View = View(context)
-    var pointer3: View = View(context)
-    var pointer4: View = View(context)
+    private var pointer1: View = View(context)
+    private var pointer2: View = View(context)
+    private var pointer3: View = View(context)
+    private var pointer4: View = View(context)
+
+    private var previewWidth: Float? = null
+    private var previewHeight: Float? = null
+
+    private val clearRunnable = Runnable {
+        pointer1.clearAnimation()
+        pointer2.clearAnimation()
+        pointer3.clearAnimation()
+        pointer4.clearAnimation()
+        clearPointersPosition()
+    }
 
     init {
         paint.color = ContextCompat.getColor(context, R.color.zdc_white_transparent)
@@ -76,6 +81,10 @@ internal class ScanCanvasView : FrameLayout {
         addView(pointer3)
         addView(pointer4)
     }
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
     private fun clearPointersPosition() {
         pointer1.x = 0F
@@ -114,21 +123,18 @@ internal class ScanCanvasView : FrameLayout {
         }
     }
 
-    var previewWidth: Float? = null
-    var previewHeight: Float? = null
-
     fun showShape(previewWidth: Float, previewHeight: Float, points: Array<Point>) {
         this.previewWidth = previewWidth
         this.previewHeight = previewHeight
 
-        val pointer1x = previewWidth - points[0].y.toFloat()
-        val pointer1y = points[0].x.toFloat()
-        val pointer2x = previewWidth - points[1].y.toFloat()
-        val pointer2y = points[1].x.toFloat()
-        val pointer3x = previewWidth - points[2].y.toFloat()
-        val pointer3y = points[2].x.toFloat()
-        val pointer4x = previewWidth - points[3].y.toFloat()
-        val pointer4y = points[3].x.toFloat()
+        val pointer1x = previewWidth - points[INDEX_POINT_0].y.toFloat()
+        val pointer1y = points[INDEX_POINT_0].x.toFloat()
+        val pointer2x = previewWidth - points[INDEX_POINT_1].y.toFloat()
+        val pointer2y = points[INDEX_POINT_1].x.toFloat()
+        val pointer3x = previewWidth - points[INDEX_POINT_2].y.toFloat()
+        val pointer3y = points[INDEX_POINT_2].x.toFloat()
+        val pointer4x = previewWidth - points[INDEX_POINT_3].y.toFloat()
+        val pointer4y = points[INDEX_POINT_3].x.toFloat()
 
         if (pointer1.x == 0F && pointer1.y == 0F) {
             pointer1.x = pointer1x
@@ -165,19 +171,16 @@ internal class ScanCanvasView : FrameLayout {
             }
         }
 
-        handlerClear.removeCallbacks(runnable)
+        handlerClear.removeCallbacks(clearRunnable)
         invalidate()
     }
 
     fun clearShape() {
-        handlerClear.postDelayed(runnable, CLEAR_SHAPE_DELAY_IN_MILLIS)
+        handlerClear.postDelayed(clearRunnable, CLEAR_SHAPE_DELAY_IN_MILLIS)
     }
 
-    private val runnable = Runnable {
-        pointer1.clearAnimation()
-        pointer2.clearAnimation()
-        pointer3.clearAnimation()
-        pointer4.clearAnimation()
-        clearPointersPosition()
+    companion object {
+        private const val CLEAR_SHAPE_DELAY_IN_MILLIS = 600L
+        private const val POINTER_ANIMATION_DURATION = 300L
     }
 }

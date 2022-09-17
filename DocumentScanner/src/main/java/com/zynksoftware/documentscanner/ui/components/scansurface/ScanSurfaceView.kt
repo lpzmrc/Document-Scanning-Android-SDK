@@ -17,7 +17,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package com.zynksoftware.documentscanner.ui.components.scansurface
 
 import android.content.Context
@@ -57,18 +56,6 @@ import kotlin.math.roundToInt
 
 internal class ScanSurfaceView : FrameLayout {
 
-    companion object {
-        private val TAG = ScanSurfaceView::class.simpleName
-
-        private const val TIME_POST_PICTURE = 1500L
-        private const val DEFAULT_TIME_POST_PICTURE = 1500L
-        private const val IMAGE_ANALYSIS_SCALE_WIDTH = 400
-    }
-
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
-
     lateinit var lifecycleOwner: LifecycleOwner
     lateinit var listener: ScanSurfaceListener
     lateinit var originalImageFile: File
@@ -94,6 +81,10 @@ internal class ScanSurfaceView : FrameLayout {
         LayoutInflater.from(context).inflate(R.layout.scan_surface_view, this, true)
     }
 
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
+
     fun start() {
         viewFinder.post {
             viewFinder.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
@@ -115,9 +106,9 @@ internal class ScanSurfaceView : FrameLayout {
             try {
                 bindCamera()
                 checkIfFlashIsPresent()
-            } catch (exc: Exception) {
-                Log.e(TAG, ErrorMessage.CAMERA_USE_CASE_BINDING_FAILED.error, exc)
-                listener.onError(DocumentScannerErrorModel(ErrorMessage.CAMERA_USE_CASE_BINDING_FAILED, exc))
+            } catch (expected: Exception) {
+                Log.e(TAG, ErrorMessage.CAMERA_USE_CASE_BINDING_FAILED.error, expected)
+                listener.onError(DocumentScannerErrorModel(ErrorMessage.CAMERA_USE_CASE_BINDING_FAILED, expected))
             }
         }, ContextCompat.getMainExecutor(context))
     }
@@ -180,9 +171,9 @@ internal class ScanSurfaceView : FrameLayout {
                     } else {
                         clearAndInvalidateCanvas()
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, ErrorMessage.DETECT_LARGEST_QUADRILATERAL_FAILED.error, e)
-                    listener.onError(DocumentScannerErrorModel(ErrorMessage.DETECT_LARGEST_QUADRILATERAL_FAILED, e))
+                } catch (expected: Exception) {
+                    Log.e(TAG, ErrorMessage.DETECT_LARGEST_QUADRILATERAL_FAILED.error, expected)
+                    listener.onError(DocumentScannerErrorModel(ErrorMessage.DETECT_LARGEST_QUADRILATERAL_FAILED, expected))
                     clearAndInvalidateCanvas()
                 }
             } else {
@@ -199,13 +190,15 @@ internal class ScanSurfaceView : FrameLayout {
         val previewWidth = stdSize.height.toFloat()
         val previewHeight = stdSize.width.toFloat()
 
-        val resultWidth = max(previewWidth - points[0].y.toFloat(), previewWidth - points[1].y.toFloat()) -
-                min(previewWidth - points[2].y.toFloat(), previewWidth - points[3].y.toFloat())
+        val resultWidth = max(previewWidth - points[INDEX_POINT_0].y.toFloat(), previewWidth - points[INDEX_POINT_1].y.toFloat()) -
+            min(previewWidth - points[INDEX_POINT_2].y.toFloat(), previewWidth - points[INDEX_POINT_3].y.toFloat())
 
-        val resultHeight = max(points[1].x.toFloat(), points[2].x.toFloat()) - min(points[0].x.toFloat(), points[3].x.toFloat())
+        val resultHeight = max(points[INDEX_POINT_1].x.toFloat(), points[INDEX_POINT_2].x.toFloat()) - min(points[INDEX_POINT_0].x.toFloat(), points[INDEX_POINT_3].x.toFloat())
 
-        val imgDetectionPropsObj = ImageDetectionProperties(previewWidth.toDouble(), previewHeight.toDouble(),
-            points[0], points[1], points[2], points[3], resultWidth.toInt(), resultHeight.toInt())
+        val imgDetectionPropsObj = ImageDetectionProperties(
+            previewWidth.toDouble(), previewHeight.toDouble(),
+            points[INDEX_POINT_0], points[INDEX_POINT_1], points[INDEX_POINT_2], points[INDEX_POINT_3], resultWidth.toInt(), resultHeight.toInt()
+        )
         if (imgDetectionPropsObj.isNotValidImage(approx)) {
             scanCanvasView.clearShape()
             cancelAutoCapture()
@@ -236,8 +229,9 @@ internal class ScanSurfaceView : FrameLayout {
     }
 
     private fun autoCapture() {
-        if (isCapturing)
+        if (isCapturing) {
             return
+        }
         cancelAutoCapture()
         takePicture()
     }
@@ -250,7 +244,8 @@ internal class ScanSurfaceView : FrameLayout {
         val imageCapture = imageCapture ?: return
         val outputOptions = ImageCapture.OutputFileOptions.Builder(originalImageFile).build()
 
-        imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(context),
+        imageCapture.takePicture(
+            outputOptions, ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     listener.scanSurfaceHideProgress()
@@ -268,7 +263,8 @@ internal class ScanSurfaceView : FrameLayout {
                     postDelayed({ isCapturing = false }, TIME_POST_PICTURE)
                     Log.d(TAG, "ZDCtakePicture ends ${System.currentTimeMillis()}")
                 }
-            })
+            }
+        )
     }
 
     private fun checkIfFlashIsPresent() {
@@ -297,5 +293,19 @@ internal class ScanSurfaceView : FrameLayout {
         }
         setImageCapture()
         camera = cameraProvider!!.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, imageCapture)
+    }
+
+    companion object {
+        private val TAG = ScanSurfaceView::class.simpleName
+
+        private const val TIME_POST_PICTURE = 1500L
+        private const val DEFAULT_TIME_POST_PICTURE = 1500L
+        private const val IMAGE_ANALYSIS_SCALE_WIDTH = 400
+
+        const val INDEX_POINT_INVALID = -1
+        const val INDEX_POINT_0 = 0
+        const val INDEX_POINT_1 = 1
+        const val INDEX_POINT_2 = 2
+        const val INDEX_POINT_3 = 3
     }
 }

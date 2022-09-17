@@ -17,7 +17,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package com.zynksoftware.documentscanner.ui.components.polygon
 
 import android.content.Context
@@ -31,12 +30,16 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.zynksoftware.documentscanner.R
-import java.util.*
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_0
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_1
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_2
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_3
+import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceView.Companion.INDEX_POINT_INVALID
 
 internal class PolygonView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     var paint: Paint = Paint()
@@ -45,12 +48,6 @@ internal class PolygonView @JvmOverloads constructor(
     private var pointer3: ImageView
     private var pointer4: ImageView
     private var pointPadding = resources.getDimension(R.dimen.zdc_point_padding).toInt()
-
-    companion object {
-        private val TAG = PolygonView::class.simpleName
-        private const val HALF = 2
-        private const val THREE_PARTS = 3
-    }
 
     init {
         pointer1 = getImageView(0, 0)
@@ -77,7 +74,7 @@ internal class PolygonView @JvmOverloads constructor(
     }
 
     fun setPoints(pointFMap: Map<Int, PointF>) {
-        if (pointFMap.size == 4) {
+        if (pointFMap.size == POINTS_SIZE) {
             setPointsCoordinates(pointFMap)
         }
     }
@@ -92,7 +89,7 @@ internal class PolygonView @JvmOverloads constructor(
     }
 
     fun isValidShape(pointFMap: Map<Int, PointF>): Boolean {
-        return pointFMap.size == 4
+        return pointFMap.size == POINTS_SIZE
     }
 
     private fun getOutlinePoints(tempBitmap: Bitmap): Map<Int, PointF> {
@@ -101,10 +98,10 @@ internal class PolygonView @JvmOverloads constructor(
         val screenXCenter = tempBitmap.width / HALF
         val screenYCenter = tempBitmap.height / HALF
         val outlinePoints: MutableMap<Int, PointF> = HashMap()
-        outlinePoints[0] = PointF(screenXCenter - offsetWidth, screenYCenter - offsetHeight)
-        outlinePoints[1] = PointF(screenXCenter + offsetWidth, screenYCenter - offsetHeight)
-        outlinePoints[2] = PointF(screenXCenter - offsetWidth , screenYCenter + offsetHeight)
-        outlinePoints[3] = PointF(screenXCenter + offsetWidth, screenYCenter + offsetHeight)
+        outlinePoints[INDEX_POINT_0] = PointF(screenXCenter - offsetWidth, screenYCenter - offsetHeight)
+        outlinePoints[INDEX_POINT_1] = PointF(screenXCenter + offsetWidth, screenYCenter - offsetHeight)
+        outlinePoints[INDEX_POINT_2] = PointF(screenXCenter - offsetWidth, screenYCenter + offsetHeight)
+        outlinePoints[INDEX_POINT_3] = PointF(screenXCenter + offsetWidth, screenYCenter + offsetHeight)
         return outlinePoints
     }
 
@@ -117,15 +114,15 @@ internal class PolygonView @JvmOverloads constructor(
         }
         val orderedPoints: MutableMap<Int, PointF> = HashMap()
         for (pointF in points) {
-            var index = -1
+            var index = INDEX_POINT_INVALID
             if (pointF.x < centerPoint.x && pointF.y < centerPoint.y) {
-                index = 0
+                index = INDEX_POINT_0
             } else if (pointF.x > centerPoint.x && pointF.y < centerPoint.y) {
-                index = 1
+                index = INDEX_POINT_1
             } else if (pointF.x < centerPoint.x && pointF.y > centerPoint.y) {
-                index = 2
+                index = INDEX_POINT_2
             } else if (pointF.x > centerPoint.x && pointF.y > centerPoint.y) {
-                index = 3
+                index = INDEX_POINT_3
             }
             orderedPoints[index] = pointF
         }
@@ -133,17 +130,17 @@ internal class PolygonView @JvmOverloads constructor(
     }
 
     private fun setPointsCoordinates(pointFMap: Map<Int, PointF>) {
-        pointer1.x = pointFMap.getValue(0).x - pointPadding
-        pointer1.y = pointFMap.getValue(0).y - pointPadding
+        pointer1.x = pointFMap.getValue(INDEX_POINT_0).x - pointPadding
+        pointer1.y = pointFMap.getValue(INDEX_POINT_0).y - pointPadding
 
-        pointer2.x = pointFMap.getValue(1).x - pointPadding
-        pointer2.y = pointFMap.getValue(1).y - pointPadding
+        pointer2.x = pointFMap.getValue(INDEX_POINT_1).x - pointPadding
+        pointer2.y = pointFMap.getValue(INDEX_POINT_1).y - pointPadding
 
-        pointer3.x = pointFMap.getValue(2).x - pointPadding
-        pointer3.y = pointFMap.getValue(2).y - pointPadding
+        pointer3.x = pointFMap.getValue(INDEX_POINT_2).x - pointPadding
+        pointer3.y = pointFMap.getValue(INDEX_POINT_2).y - pointPadding
 
-        pointer4.x = pointFMap.getValue(3).x - pointPadding
-        pointer4.y = pointFMap.getValue(3).y - pointPadding
+        pointer4.x = pointFMap.getValue(INDEX_POINT_3).x - pointPadding
+        pointer4.y = pointFMap.getValue(INDEX_POINT_3).y - pointPadding
     }
 
     override fun dispatchDraw(canvas: Canvas) {
@@ -170,14 +167,20 @@ internal class PolygonView @JvmOverloads constructor(
         )
     }
 
-    private fun getImageView(x: Int, y: Int): ImageView {
+    private fun getImageView(pointX: Int, pointY: Int): ImageView {
         val imageView = PolygonPointImageView(context, this)
         val layoutParams = LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         imageView.layoutParams = layoutParams
         imageView.setImageResource(R.drawable.crop_corner_circle)
         imageView.setPadding(pointPadding, pointPadding, pointPadding, pointPadding)
-        imageView.x = x.toFloat()
-        imageView.y = y.toFloat()
+        imageView.x = pointX.toFloat()
+        imageView.y = pointY.toFloat()
         return imageView
+    }
+
+    companion object {
+        private const val HALF = 2
+        private const val THREE_PARTS = 3
+        private const val POINTS_SIZE = 4
     }
 }

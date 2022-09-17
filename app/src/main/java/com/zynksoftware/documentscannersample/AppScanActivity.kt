@@ -18,6 +18,7 @@ import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.ScannerResults
 import com.zynksoftware.documentscannersample.adapters.ImageAdapter
 import com.zynksoftware.documentscannersample.adapters.ImageAdapterListener
+import com.zynksoftware.documentscannersample.ktx.BYTE_SCALE
 import com.zynksoftware.documentscannersample.ktx.sizeInMb
 import java.io.File
 import java.io.FileInputStream
@@ -32,17 +33,7 @@ import kotlinx.android.synthetic.main.app_scan_activity_layout.previousButton
 import kotlinx.android.synthetic.main.app_scan_activity_layout.progressLayoutApp
 import kotlinx.android.synthetic.main.app_scan_activity_layout.viewPagerTwo
 
-
 class AppScanActivity : ScanActivity(), ImageAdapterListener {
-
-    companion object {
-        private val TAG = ">>>>"
-
-        fun start(context: Context) {
-            val intent = Intent(context, AppScanActivity::class.java)
-            context.startActivity(intent)
-        }
-    }
 
     private var alertDialogBuilder: android.app.AlertDialog.Builder? = null
     private var alertDialog: android.app.AlertDialog? = null
@@ -75,15 +66,9 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
             .requestEach(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
             .subscribe { permission ->
                 when {
-                    permission.granted -> {
-                        saveImage(image)
-                    }
-                    permission.shouldShowRequestPermissionRationale -> {
-                        onError(DocumentScannerErrorModel(DocumentScannerErrorModel.ErrorMessage.STORAGE_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN))
-                    }
-                    else -> {
-                        onError(DocumentScannerErrorModel(DocumentScannerErrorModel.ErrorMessage.STORAGE_PERMISSION_REFUSED_GO_TO_SETTINGS))
-                    }
+                    permission.granted -> saveImage(image)
+                    permission.shouldShowRequestPermissionRationale -> onError(DocumentScannerErrorModel(DocumentScannerErrorModel.ErrorMessage.STORAGE_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN))
+                    else -> onError(DocumentScannerErrorModel(DocumentScannerErrorModel.ErrorMessage.STORAGE_PERMISSION_REFUSED_GO_TO_SETTINGS))
                 }
             }
     }
@@ -95,14 +80,14 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
         val formatter = SimpleDateFormat("dd_MM_yyyy_HH_mm_ss:mm", Locale.getDefault())
         val dateFormatted = formatter.format(date)
 
-        val to = File(getExternalFilesDir(DIRECTORY_DCIM), "zynkphoto${dateFormatted}.jpg")
+        val to = File(getExternalFilesDir(DIRECTORY_DCIM), "zynkphoto$dateFormatted.jpg")
 
         val inputStream: InputStream = FileInputStream(image)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val resolver: ContentResolver = contentResolver
             val contentValues = ContentValues()
-            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "zynkphoto${dateFormatted}.jpg")
+            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "zynkphoto$dateFormatted.jpg")
             contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/*")
             contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM")
             val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -113,7 +98,7 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
         } else {
             val out: OutputStream = FileOutputStream(to)
 
-            val buf = ByteArray(1024)
+            val buf = ByteArray(BYTE_SCALE)
             var len: Int
             while (inputStream.read(buf).also { len = it } > 0) {
                 out.write(buf, 0, len)
@@ -179,11 +164,18 @@ class AppScanActivity : ScanActivity(), ImageAdapterListener {
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(buttonMessage) { _, _ ->
-
             }
         alertDialog?.dismiss()
         alertDialog = alertDialogBuilder?.create()
         alertDialog?.setCanceledOnTouchOutside(false)
         alertDialog?.show()
+    }
+
+    companion object {
+        private val TAG = AppScanActivity::class.simpleName
+        fun start(context: Context) {
+            val intent = Intent(context, AppScanActivity::class.java)
+            context.startActivity(intent)
+        }
     }
 }

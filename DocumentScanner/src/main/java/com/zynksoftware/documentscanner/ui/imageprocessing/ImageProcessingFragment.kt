@@ -17,10 +17,13 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package com.zynksoftware.documentscanner.ui.imageprocessing
 
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -30,21 +33,16 @@ import com.zynksoftware.documentscanner.R
 import com.zynksoftware.documentscanner.common.extensions.rotateBitmap
 import com.zynksoftware.documentscanner.ui.base.BaseFragment
 import com.zynksoftware.documentscanner.ui.scan.InternalScanActivity
-import kotlinx.android.synthetic.main.fragment_image_processing.*
+import kotlinx.android.synthetic.main.fragment_image_processing.closeButton
+import kotlinx.android.synthetic.main.fragment_image_processing.confirmButton
+import kotlinx.android.synthetic.main.fragment_image_processing.imagePreview
+import kotlinx.android.synthetic.main.fragment_image_processing.magicButton
+import kotlinx.android.synthetic.main.fragment_image_processing.rotateButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 internal class ImageProcessingFragment : BaseFragment() {
-
-    companion object {
-        private val TAG = ImageProcessingFragment::class.simpleName
-        private const val ANGLE_OF_ROTATION = 90
-
-        fun newInstance(): ImageProcessingFragment {
-            return ImageProcessingFragment()
-        }
-    }
 
     private var isInverted = false
 
@@ -75,20 +73,18 @@ internal class ImageProcessingFragment : BaseFragment() {
         }
     }
 
-    private fun getScanActivity(): InternalScanActivity {
-        return (requireActivity() as InternalScanActivity)
-    }
+    private fun getScanActivity(): InternalScanActivity = requireActivity() as InternalScanActivity
 
     private fun rotateImage() {
         Log.d(TAG, "ZDCrotate starts ${System.currentTimeMillis()}")
         showProgressBar()
         GlobalScope.launch(Dispatchers.IO) {
-            if(isAdded) {
+            if (isAdded) {
                 getScanActivity().transformedImage = getScanActivity().transformedImage?.rotateBitmap(ANGLE_OF_ROTATION)
                 getScanActivity().croppedImage = getScanActivity().croppedImage?.rotateBitmap(ANGLE_OF_ROTATION)
             }
 
-            if(isAdded) {
+            if (isAdded) {
                 getScanActivity().runOnUiThread {
                     hideProgressBar()
                     if (isInverted) {
@@ -110,7 +106,7 @@ internal class ImageProcessingFragment : BaseFragment() {
         Log.d(TAG, "ZDCgrayscale starts ${System.currentTimeMillis()}")
         showProgressBar()
         GlobalScope.launch(Dispatchers.IO) {
-            if(isAdded) {
+            if (isAdded) {
                 if (!isInverted) {
                     val bmpMonochrome = Bitmap.createBitmap(getScanActivity().croppedImage!!.width, getScanActivity().croppedImage!!.height, Bitmap.Config.ARGB_8888)
                     val canvas = Canvas(bmpMonochrome)
@@ -138,5 +134,14 @@ internal class ImageProcessingFragment : BaseFragment() {
 
     private fun selectFinalScannerResults() {
         getScanActivity().finalScannerResult()
+    }
+
+    companion object {
+        private val TAG = ImageProcessingFragment::class.simpleName
+        private const val ANGLE_OF_ROTATION = 90
+
+        fun newInstance(): ImageProcessingFragment {
+            return ImageProcessingFragment()
+        }
     }
 }

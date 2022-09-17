@@ -31,12 +31,13 @@ internal class PolygonPointImageView @JvmOverloads constructor(
     context: Context,
     private val polygonView: PolygonView? = null,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
     private var downPoint = PointF()
     private var startPoint = PointF()
 
+    @Suppress("ComplexCondition")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         super.onTouchEvent(event)
 
@@ -58,9 +59,7 @@ internal class PolygonPointImageView @JvmOverloads constructor(
                     downPoint.y = event.y
                     startPoint = PointF(x, y)
                 }
-                MotionEvent.ACTION_UP -> {
-                    performClick()
-                }
+                MotionEvent.ACTION_UP -> performClick()
             }
             polygonView.invalidate()
         }
@@ -81,5 +80,4 @@ internal class PolygonPointImageView @JvmOverloads constructor(
 
         return true
     }
-
 }

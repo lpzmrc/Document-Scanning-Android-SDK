@@ -4,7 +4,6 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
@@ -25,6 +24,11 @@ import java.io.OutputStream
 
 internal object FileUriUtils {
 
+    private const val DEFAULT_BUFFER_SIZE = 4 * 1024
+    private const val IMAGE_TYPE = "image"
+    private const val VIDEO_TYPE = "video"
+    private const val AUDIO_TYPE = "audio"
+
     fun getRealPath(context: Context, uri: Uri): String? {
         var path = getPathFromLocalUri(context, uri)
         if (path == null) {
@@ -33,12 +37,10 @@ internal object FileUriUtils {
         return path
     }
 
+    @Suppress("ComplexMethod", "NestedBlockDepth", "ReturnCount")
     private fun getPathFromLocalUri(context: Context, uri: Uri): String? {
-
-        val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
-
         // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
                 val docId = DocumentsContract.getDocumentId(uri)
@@ -78,11 +80,11 @@ internal object FileUriUtils {
                 val type = split[0]
 
                 var contentUri: Uri? = null
-                if ("image" == type) {
+                if (IMAGE_TYPE == type) {
                     contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                } else if ("video" == type) {
+                } else if (VIDEO_TYPE == type) {
                     contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                } else if ("audio" == type) {
+                } else if (AUDIO_TYPE == type) {
                     contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
                 }
 
@@ -93,7 +95,6 @@ internal object FileUriUtils {
             } // MediaProvider
             // DownloadsProvider
         } else if ("content".equals(uri.scheme!!, ignoreCase = true)) {
-
             // Return the remote address
             return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(context, uri, null, null)
         } else if ("file".equals(uri.scheme!!, ignoreCase = true)) {
@@ -108,9 +109,8 @@ internal object FileUriUtils {
         context: Context,
         uri: Uri?,
         selection: String?,
-        selectionArgs: Array<String>?
+        selectionArgs: Array<String>?,
     ): String? {
-
         var cursor: Cursor? = null
         val column = "_data"
         val projection = arrayOf(column)
@@ -121,7 +121,7 @@ internal object FileUriUtils {
                 val index = cursor.getColumnIndexOrThrow(column)
                 return cursor.getString(index)
             }
-        } catch (ex: Exception) {
+        } catch (expected: Exception) {
         } finally {
             cursor?.close()
         }
@@ -129,7 +129,6 @@ internal object FileUriUtils {
     }
 
     private fun getFilePath(context: Context, uri: Uri): String? {
-
         var cursor: Cursor? = null
         val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
 
@@ -155,14 +154,14 @@ internal object FileUriUtils {
             val extension = getImageExtension(uri)
             inputStream = context.contentResolver.openInputStream(uri)
             val storageDir = context.cacheDir
-            if (!storageDir.exists())  {
+            if (!storageDir.exists()) {
                 storageDir.mkdirs()
             }
-            file = File(storageDir, "remotePicture${extension}")
+            file = File(storageDir, "remotePicture$extension")
             file.createNewFile()
             outputStream = FileOutputStream(file)
             if (inputStream != null) {
-                inputStream.copyTo(outputStream, bufferSize = 4 * 1024)
+                inputStream.copyTo(outputStream, bufferSize = DEFAULT_BUFFER_SIZE)
                 success = true
             }
         } catch (ignored: IOException) {
@@ -194,7 +193,7 @@ internal object FileUriUtils {
             if (imagePath != null && imagePath.lastIndexOf(".") != -1) {
                 extension = imagePath.substring(imagePath.lastIndexOf(".") + 1)
             }
-        } catch (e: Exception) {
+        } catch (expected: Exception) {
             extension = null
         }
 

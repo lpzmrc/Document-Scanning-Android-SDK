@@ -2,6 +2,11 @@ package com.zynksoftware.documentscannersample.ktx
 
 import java.io.File
 
+/**
+ * 1024
+ */
+const val BYTE_SCALE = 1024
+
 val File.size get() = if (!exists()) 0.0 else length().toDouble()
-val File.sizeInKb get() = size / 1024
-val File.sizeInMb get() = sizeInKb / 1024
+val File.sizeInKb get() = size / BYTE_SCALE
+val File.sizeInMb get() = sizeInKb / BYTE_SCALE
