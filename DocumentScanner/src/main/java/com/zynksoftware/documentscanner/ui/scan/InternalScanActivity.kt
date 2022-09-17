@@ -32,7 +32,6 @@ import com.zynksoftware.documentscanner.R
 import com.zynksoftware.documentscanner.common.extensions.hide
 import com.zynksoftware.documentscanner.common.extensions.show
 import com.zynksoftware.documentscanner.manager.SessionManager
-import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.ScannerResults
 import com.zynksoftware.documentscanner.ui.DocumentScanner.Configuration.Companion.DEFAULT_IMAGE_QUALITY
 import com.zynksoftware.documentscanner.ui.camerascreen.CameraScreenFragment
@@ -50,7 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Suppress("TooManyFunctions")
-abstract class InternalScanActivity : FragmentActivity() {
+abstract class InternalScanActivity : FragmentActivity(), ScanViewListener {
 
     internal lateinit var originalImageFile: File
     internal var croppedImage: Bitmap? = null
@@ -59,10 +58,6 @@ abstract class InternalScanActivity : FragmentActivity() {
     private var imageSize: Long = NOT_INITIALIZED
     private lateinit var imageType: Bitmap.CompressFormat
     internal var shouldCallOnClose = true
-
-    abstract fun onError(error: DocumentScannerErrorModel)
-    abstract fun onSuccess(scannerResults: ScannerResults)
-    abstract fun onClose()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

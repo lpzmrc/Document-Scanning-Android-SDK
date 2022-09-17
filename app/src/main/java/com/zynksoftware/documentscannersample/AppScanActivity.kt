@@ -30,6 +30,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * A [ScanActivity] implementation for the app.
+ */
 class AppScanActivity : ScanActivity(), ImageAdapterListener {
 
     private var _binding: AppScanActivityLayoutBinding? = null
