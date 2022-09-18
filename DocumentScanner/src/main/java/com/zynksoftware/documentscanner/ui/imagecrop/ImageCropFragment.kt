@@ -45,6 +45,15 @@ import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceVie
 import com.zynksoftware.documentscanner.ui.scan.InternalScanActivity
 import id.zelory.compressor.determineImageRotation
 
+/**
+ * The image crop [BaseFragment].
+ *
+ * Users can:
+ *
+ * - edit the detected edge.
+ * - cancel the scan.
+ * - save the cropped image.
+ */
 internal class ImageCropFragment : BaseFragment() {
 
     private var _binding: FragmentImageCropBinding? = null
@@ -99,7 +108,6 @@ internal class ImageCropFragment : BaseFragment() {
 
     private fun initializeCropping() {
         binding.run {
-
             if (selectedImage != null && selectedImage!!.width > 0 && selectedImage!!.height > 0) {
                 val scaledBitmap: Bitmap = selectedImage!!.scaledBitmap(holderImageCrop.width, holderImageCrop.height)
                 imagePreview.setImageBitmap(scaledBitmap)

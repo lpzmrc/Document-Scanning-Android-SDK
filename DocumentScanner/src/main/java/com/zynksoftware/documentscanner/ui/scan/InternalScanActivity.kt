@@ -23,21 +23,15 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
-import androidx.fragment.app.Fragment
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
 import com.zynksoftware.documentscanner.R
-import com.zynksoftware.documentscanner.common.extensions.hide
-import com.zynksoftware.documentscanner.common.extensions.show
+import com.zynksoftware.documentscanner.databinding.ActivityInternalScanBinding
 import com.zynksoftware.documentscanner.manager.SessionManager
 import com.zynksoftware.documentscanner.model.ScannerResults
-import com.zynksoftware.documentscanner.ui.DocumentScanner.Configuration.Companion.DEFAULT_IMAGE_QUALITY
-import com.zynksoftware.documentscanner.ui.camerascreen.CameraScreenFragment
-import com.zynksoftware.documentscanner.ui.components.ProgressView
-import com.zynksoftware.documentscanner.ui.imagecrop.ImageCropFragment
-import com.zynksoftware.documentscanner.ui.imageprocessing.ImageProcessingFragment
+import com.zynksoftware.documentscanner.ui.DocumentScanner
 import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.format
 import id.zelory.compressor.constraint.quality
@@ -48,107 +42,104 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Suppress("TooManyFunctions")
+/**
+ * Internal abstract class contaning all the function required to implement a scanner into a [FragmentActivity].
+ */
 abstract class InternalScanActivity : FragmentActivity(), ScanViewListener {
 
+    private var _binding: ActivityInternalScanBinding? = null
+    private val binding
+        get() = _binding!!
+    private val navHostFragment
+        get() = supportFragmentManager.findFragmentById(R.id.zdcContent) as NavHostFragment
+    private val navController get() = navHostFragment.navController
+
     internal lateinit var originalImageFile: File
+    private lateinit var configuration: DocumentScanner.Configuration
+
     internal var croppedImage: Bitmap? = null
     internal var transformedImage: Bitmap? = null
-    private var imageQuality: Int = DEFAULT_IMAGE_QUALITY
-    private var imageSize: Long = NOT_INITIALIZED
-    private lateinit var imageType: Bitmap.CompressFormat
     internal var shouldCallOnClose = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val sessionManager = SessionManager(this)
-        imageType = sessionManager.getImageType()
-        imageSize = sessionManager.getImageSize()
-        imageQuality = sessionManager.getImageQuality()
+        configuration = SessionManager(this).toConfiguration()
         reInitOriginalImageFile()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+
     internal fun reInitOriginalImageFile() {
-        originalImageFile = File(filesDir, "$ORIGINAL_IMAGE_NAME.${imageType.extension()}")
+        originalImageFile = File(filesDir, "$ORIGINAL_IMAGE_NAME.${configuration.imageType.extension()}")
         originalImageFile.delete()
     }
 
     private fun showCameraScreen() {
-        val cameraScreenFragment = CameraScreenFragment.newInstance()
-        addFragmentToBackStack(cameraScreenFragment, CAMERA_SCREEN_FRAGMENT_TAG)
+        navController.navigate(R.id.cameraScreenFragment)
     }
 
     internal fun showImageCropFragment() {
-        val imageCropFragment = ImageCropFragment.newInstance()
-        addFragmentToBackStack(imageCropFragment, IMAGE_CROP_FRAGMENT_TAG)
+        navController.navigate(R.id.imageCropFragment)
     }
 
     internal fun showImageProcessingFragment() {
-        val imageProcessingFragment = ImageProcessingFragment.newInstance()
-        addFragmentToBackStack(imageProcessingFragment, IMAGE_PROCESSING_FRAGMENT_TAG)
+        navController.navigate(R.id.imageProcessingFragment)
     }
 
     internal fun closeCurrentFragment() {
         supportFragmentManager.popBackStackImmediate()
     }
 
-    private fun addFragmentToBackStack(fragment: Fragment, fragmentTag: String) {
-        val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.zdcContent, fragment, fragmentTag)
-        if (supportFragmentManager.findFragmentByTag(fragmentTag) == null) {
-            fragmentTransaction.addToBackStack(fragmentTag)
-        }
-        fragmentTransaction.commit()
-    }
-
     internal fun finalScannerResult() {
-        findViewById<FrameLayout>(R.id.zdcContent).hide()
+        binding.zdcContent.isVisible = false
         compressFiles()
     }
 
     private fun compressFiles() {
         Log.d(TAG, "ZDCcompress starts ${System.currentTimeMillis()}")
-        findViewById<ProgressView>(R.id.zdcProgressView).show()
+        binding.zdcProgressView.isVisible = true
         lifecycleScope.launch(Dispatchers.IO) {
             var croppedImageFile: File? = null
             croppedImage?.let {
-                croppedImageFile = File(filesDir, "$CROPPED_IMAGE_NAME.${imageType.extension()}")
-                saveBitmap(it, croppedImageFile!!, imageType, imageQuality)
+                croppedImageFile = File(filesDir, "$CROPPED_IMAGE_NAME.${configuration.imageType.extension()}")
+                saveBitmap(it, croppedImageFile!!, configuration.imageType, configuration.imageQuality)
             }
 
             var transformedImageFile: File? = null
             transformedImage?.let {
-                transformedImageFile = File(filesDir, "$TRANSFORMED_IMAGE_NAME.${imageType.extension()}")
-                saveBitmap(it, transformedImageFile!!, imageType, imageQuality)
+                transformedImageFile = File(filesDir, "$TRANSFORMED_IMAGE_NAME.${configuration.imageType.extension()}")
+                saveBitmap(it, transformedImageFile!!, configuration.imageType, configuration.imageQuality)
             }
 
             originalImageFile = Compressor.compress(this@InternalScanActivity, originalImageFile) {
-                quality(imageQuality)
-                if (imageSize != NOT_INITIALIZED) size(imageSize)
-                format(imageType)
+                quality(configuration.imageQuality)
+                if (configuration.imageSize != NOT_INITIALIZED) size(configuration.imageSize)
+                format(configuration.imageType)
             }
 
             croppedImageFile = croppedImageFile?.let {
                 Compressor.compress(this@InternalScanActivity, it) {
-                    quality(imageQuality)
-                    if (imageSize != NOT_INITIALIZED) size(imageSize)
-                    format(imageType)
+                    quality(configuration.imageQuality)
+                    if (configuration.imageSize != NOT_INITIALIZED) size(configuration.imageSize)
+                    format(configuration.imageType)
                 }
             }
 
             transformedImageFile = transformedImageFile?.let {
                 Compressor.compress(this@InternalScanActivity, it) {
-                    quality(imageQuality)
-                    if (imageSize != NOT_INITIALIZED) size(imageSize)
-                    format(imageType)
+                    quality(configuration.imageQuality)
+                    if (configuration.imageSize != NOT_INITIALIZED) size(configuration.imageSize)
+                    format(configuration.imageType)
                 }
             }
 
             val scannerResults = ScannerResults(originalImageFile, croppedImageFile, transformedImageFile)
             runOnUiThread {
-                findViewById<ProgressView>(R.id.zdcProgressView).hide()
+                binding.zdcProgressView.isVisible = false
                 shouldCallOnClose = false
-                supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 shouldCallOnClose = true
                 onSuccess(scannerResults)
                 Log.d(TAG, "ZDCcompress ends ${System.currentTimeMillis()}")
@@ -157,36 +148,23 @@ abstract class InternalScanActivity : FragmentActivity(), ScanViewListener {
     }
 
     internal fun addFragmentContentLayoutInternal() {
-        val frameLayout = FrameLayout(this)
-        frameLayout.id = R.id.zdcContent
         addContentView(
-            frameLayout,
+            ActivityInternalScanBinding.inflate(layoutInflater).apply {
+                _binding = this
+            }.root,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         )
 
-        val progressView = ProgressView(this)
-        progressView.id = R.id.zdcProgressView
-        addContentView(
-            progressView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-        )
-
-        progressView.hide()
+        binding.zdcProgressView.isVisible = false
 
         showCameraScreen()
     }
 
     companion object {
         private val TAG = InternalScanActivity::class.simpleName
-        internal const val CAMERA_SCREEN_FRAGMENT_TAG = "CameraScreenFragmentTag"
-        internal const val IMAGE_CROP_FRAGMENT_TAG = "ImageCropFragmentTag"
-        internal const val IMAGE_PROCESSING_FRAGMENT_TAG = "ImageProcessingFragmentTag"
         internal const val ORIGINAL_IMAGE_NAME = "original"
         internal const val CROPPED_IMAGE_NAME = "cropped"
         internal const val TRANSFORMED_IMAGE_NAME = "transformed"

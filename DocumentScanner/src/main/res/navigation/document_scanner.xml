@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/document_scanner"
+    app:startDestination="@id/emptyFragment">
+
+    <fragment
+        android:id="@+id/cameraScreenFragment"
+        android:name="com.zynksoftware.documentscanner.ui.camerascreen.CameraScreenFragment"
+        android:label="CameraScreenFragment" />
+
+    <fragment
+        android:id="@+id/imageCropFragment"
+        android:name="com.zynksoftware.documentscanner.ui.imagecrop.ImageCropFragment"
+        android:label="ImageCropFragment" />
+    <fragment
+        android:id="@+id/imageProcessingFragment"
+        android:name="com.zynksoftware.documentscanner.ui.imageprocessing.ImageProcessingFragment"
+        android:label="ImageProcessingFragment" />
+    <fragment
+        android:id="@+id/emptyFragment"
+        android:name="com.zynksoftware.documentscanner.ui.base.EmptyFragment"
+        android:label="EmptyFragment" />
+</navigation>

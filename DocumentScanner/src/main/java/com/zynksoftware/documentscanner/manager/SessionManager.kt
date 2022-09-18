@@ -21,6 +21,7 @@ package com.zynksoftware.documentscanner.manager
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.zynksoftware.documentscanner.ui.DocumentScanner
 import id.zelory.compressor.extension
 import java.util.Locale
 
@@ -28,35 +29,38 @@ internal class SessionManager(context: Context) {
 
     private val preferences = context.getSharedPreferences("ZDC_Shared_Preferences", Context.MODE_PRIVATE)
 
-    fun getImageSize(): Long {
-        return preferences.getLong(IMAGE_SIZE_KEY, -1L)
-    }
+    var imageSize: Long
+        get() = preferences.getLong(IMAGE_SIZE_KEY, -1L)
+        set(value) {
+            preferences.edit().putLong(IMAGE_SIZE_KEY, value).apply()
+        }
 
-    fun setImageSize(size: Long) {
-        preferences.edit().putLong(IMAGE_SIZE_KEY, size).apply()
-    }
+    var imageQuality: Int
+        get() = preferences.getInt(IMAGE_QUALITY_KEY, 100)
+        set(value) {
+            preferences.edit().putInt(IMAGE_QUALITY_KEY, value).apply()
+        }
 
-    fun getImageQuality(): Int {
-        return preferences.getInt(IMAGE_QUALITY_KEY, 100)
-    }
+    var imageType: Bitmap.CompressFormat
+        get() {
+            return compressFormat(preferences.getString(IMAGE_TYPE_KEY, DEFAULT_IMAGE_TYPE)!!)
+        }
+        set(value) {
+            preferences.edit().putString(IMAGE_TYPE_KEY, value.extension()).apply()
+        }
 
-    fun setImageQuality(quality: Int) {
-        preferences.edit().putInt(IMAGE_QUALITY_KEY, quality).apply()
-    }
-
-    fun getImageType(): Bitmap.CompressFormat {
-        return compressFormat(preferences.getString(IMAGE_TYPE_KEY, DEFAULT_IMAGE_TYPE)!!)
-    }
-
-    fun setImageType(type: Bitmap.CompressFormat) {
-        preferences.edit().putString(IMAGE_TYPE_KEY, type.extension()).apply()
-    }
-
-    private fun compressFormat(format: String) = when (format.toLowerCase(Locale.getDefault())) {
+    @Suppress("DEPRECATION")
+    private fun compressFormat(format: String) = when (format.lowercase(Locale.getDefault())) {
         IMAGE_TYPE_PNG -> Bitmap.CompressFormat.PNG
         IMAGE_TYPE_WEBP -> Bitmap.CompressFormat.WEBP
         else -> Bitmap.CompressFormat.JPEG
     }
+
+    fun toConfiguration() = DocumentScanner.Configuration(
+        imageQuality = imageQuality,
+        imageSize = imageSize,
+        imageType = imageType,
+    )
 
     companion object {
         private const val IMAGE_SIZE_KEY = "IMAGE_SIZE_KEY"

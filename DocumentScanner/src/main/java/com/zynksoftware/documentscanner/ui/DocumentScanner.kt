@@ -31,10 +31,10 @@ object DocumentScanner {
         System.loadLibrary("opencv_java4")
         val sessionManager = SessionManager(context)
         if (configuration.imageQuality in MIN_IMAGE_QUALITY..MAX_IMAGE_QUALITY) {
-            sessionManager.setImageQuality(configuration.imageQuality)
+            sessionManager.imageQuality = configuration.imageQuality
         }
-        sessionManager.setImageSize(configuration.imageSize)
-        sessionManager.setImageType(configuration.imageType)
+        sessionManager.imageSize = configuration.imageSize
+        sessionManager.imageType = configuration.imageType
     }
 
     data class Configuration(
@@ -47,6 +47,5 @@ object DocumentScanner {
             const val MAX_IMAGE_QUALITY = 100
             const val DEFAULT_IMAGE_QUALITY: Int = MAX_IMAGE_QUALITY
         }
-
     }
 }

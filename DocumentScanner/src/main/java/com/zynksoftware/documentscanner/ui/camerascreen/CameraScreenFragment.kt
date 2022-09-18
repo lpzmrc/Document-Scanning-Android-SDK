@@ -28,19 +28,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import com.zynksoftware.documentscanner.R
-import com.zynksoftware.documentscanner.common.extensions.hide
-import com.zynksoftware.documentscanner.common.extensions.show
 import com.zynksoftware.documentscanner.common.utils.FileUriUtils
 import com.zynksoftware.documentscanner.databinding.FragmentCameraScreenBinding
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel
 import com.zynksoftware.documentscanner.model.DocumentScannerErrorModel.ErrorMessage
 import com.zynksoftware.documentscanner.ui.base.BaseFragment
+import com.zynksoftware.documentscanner.ui.camerascreen.components.CameraScanSurfaceViewListener
+import com.zynksoftware.documentscanner.ui.camerascreen.components.CameraSurfaceView
+import com.zynksoftware.documentscanner.ui.camerascreen.components.CameraSurfaceViewController
 import com.zynksoftware.documentscanner.ui.components.scansurface.ScanSurfaceListener
 import com.zynksoftware.documentscanner.ui.scan.InternalScanActivity
 import java.io.File
 import java.io.FileNotFoundException
-
 
 /**
  * The camera screen [BaseFragment].
@@ -51,8 +50,11 @@ import java.io.FileNotFoundException
  * - open the gallery to select an image to crop it.
  * - navigate back to the previous screen.
  */
-@Suppress("TooMayFunctions")
-internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
+internal class CameraScreenFragment : BaseFragment(), CameraSurfaceView {
+
+    private var _scanSurfaceViewListener: ScanSurfaceListener? = null
+    private val scanSurfaceViewListener: ScanSurfaceListener
+        get() = _scanSurfaceViewListener!!
 
     private var _binding: FragmentCameraScreenBinding? = null
     private val binding
@@ -62,16 +64,16 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
         ActivityResultContracts.RequestPermission()
     ) { granted: Boolean ->
         if (granted) {
-            startCamera()
+            cameraSurfaceViewController.startCamera()
         } else {
             if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-                onError(
+                scanSurfaceViewListener.onError(
                     error = DocumentScannerErrorModel(
                         errorMessage = ErrorMessage.CAMERA_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN
                     )
                 )
             } else {
-                onError(
+                scanSurfaceViewListener.onError(
                     error = DocumentScannerErrorModel(
                         errorMessage = ErrorMessage.CAMERA_PERMISSION_REFUSED_GO_TO_SETTINGS
                     )
@@ -87,13 +89,13 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
             galleryActivityResultLauncher.launch(galleryPickerIntent)
         } else {
             if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                onError(
+                scanSurfaceViewListener.onError(
                     error = DocumentScannerErrorModel(
                         errorMessage = ErrorMessage.STORAGE_PERMISSION_REFUSED_WITHOUT_NEVER_ASK_AGAIN
                     )
                 )
             } else {
-                onError(
+                scanSurfaceViewListener.onError(
                     error = DocumentScannerErrorModel(
                         errorMessage = ErrorMessage.STORAGE_PERMISSION_REFUSED_GO_TO_SETTINGS
                     )
@@ -122,7 +124,7 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
                         startCroppingProcess()
                     } else {
                         Log.e(TAG, ErrorMessage.TAKE_IMAGE_FROM_GALLERY_ERROR.error)
-                        onError(
+                        scanSurfaceViewListener.onError(
                             DocumentScannerErrorModel(
                                 ErrorMessage.TAKE_IMAGE_FROM_GALLERY_ERROR, null
                             )
@@ -130,31 +132,39 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
                     }
                 } else {
                     Log.e(TAG, ErrorMessage.TAKE_IMAGE_FROM_GALLERY_ERROR.error)
-                    onError(
+                    scanSurfaceViewListener.onError(
                         DocumentScannerErrorModel(
                             ErrorMessage.TAKE_IMAGE_FROM_GALLERY_ERROR, null
                         )
                     )
                 }
-            } catch (fnfe: FileNotFoundException) {
-                Log.e(TAG, "FileNotFoundException", fnfe)
-                onError(
+            } catch (expected: FileNotFoundException) {
+                Log.e(TAG, "FileNotFoundException", expected)
+                scanSurfaceViewListener.onError(
                     DocumentScannerErrorModel(
-                        ErrorMessage.TAKE_IMAGE_FROM_GALLERY_ERROR, fnfe
+                        ErrorMessage.TAKE_IMAGE_FROM_GALLERY_ERROR, expected
                     )
                 )
             }
         }
     }
 
+    private var _cameraSurfaceViewController: CameraSurfaceViewController? = null
+    private val cameraSurfaceViewController: CameraSurfaceViewController
+        get() = _cameraSurfaceViewController!!
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return FragmentCameraScreenBinding.inflate(layoutInflater).apply {
             _binding = this
+            _scanSurfaceViewListener = CameraScanSurfaceViewListener(this@CameraScreenFragment, binding)
+            _cameraSurfaceViewController = CameraSurfaceViewController(this@CameraScreenFragment, binding)
         }.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _scanSurfaceViewListener = null
+        _cameraSurfaceViewController = null
         _binding = null
     }
 
@@ -163,7 +173,7 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
 
         binding.run {
             scanSurfaceView.lifecycleOwner = viewLifecycleOwner
-            scanSurfaceView.listener = this@CameraScreenFragment
+            scanSurfaceView.listener = scanSurfaceViewListener
             scanSurfaceView.originalImageFile = getScanActivity().originalImageFile
         }
 
@@ -187,40 +197,21 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
     private fun initListeners() {
         binding.run {
             cameraCaptureButton.setOnClickListener {
-                takePhoto()
+                cameraSurfaceViewController.takePhoto()
             }
             cancelButton.setOnClickListener {
                 finishActivity()
             }
             flashButton.setOnClickListener {
-                switchFlashState()
+                cameraSurfaceViewController.switchFlashState()
             }
             galleryButton.setOnClickListener {
                 storagePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
             autoButton.setOnClickListener {
-                toggleAutoManualButton()
+                cameraSurfaceViewController.toggleAutoManualButton()
             }
         }
-    }
-
-    private fun toggleAutoManualButton() {
-        binding.run {
-            scanSurfaceView.isAutoCaptureOn = !scanSurfaceView.isAutoCaptureOn
-            if (scanSurfaceView.isAutoCaptureOn) {
-                autoButton.text = getString(R.string.zdc_auto)
-            } else {
-                autoButton.text = getString(R.string.zdc_manual)
-            }
-        }
-    }
-
-    private fun startCamera() {
-        binding.scanSurfaceView.start()
-    }
-
-    private fun takePhoto() {
-        binding.scanSurfaceView.takePicture()
     }
 
     private fun getScanActivity(): InternalScanActivity = requireActivity() as InternalScanActivity
@@ -229,48 +220,18 @@ internal class CameraScreenFragment : BaseFragment(), ScanSurfaceListener {
         getScanActivity().finish()
     }
 
-    private fun switchFlashState() {
-        binding.scanSurfaceView.switchFlashState()
-    }
-
-    override fun showFlash() {
-        binding.flashButton.show()
-    }
-
-    override fun hideFlash() {
-        binding.flashButton.hide()
-    }
-
-    override fun scanSurfacePictureTaken() {
-        startCroppingProcess()
-    }
-
-    internal fun startCroppingProcess() {
+    override fun startCroppingProcess() {
         if (isAdded) {
             getScanActivity().showImageCropFragment()
         }
     }
 
-    override fun scanSurfaceShowProgress() {
-        showProgressBar()
-    }
-
-    override fun scanSurfaceHideProgress() {
-        hideProgressBar()
-    }
-
     override fun onError(error: DocumentScannerErrorModel) {
-        if (isAdded) {
-            getScanActivity().onError(error)
+        run {
+            if (isAdded) {
+                getScanActivity().onError(error)
+            }
         }
-    }
-
-    override fun showFlashModeOn() {
-        binding.flashButton.setImageResource(R.drawable.zdc_flash_on)
-    }
-
-    override fun showFlashModeOff() {
-        binding.flashButton.setImageResource(R.drawable.zdc_flash_off)
     }
 
     companion object {
